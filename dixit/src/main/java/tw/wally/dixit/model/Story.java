@@ -1,24 +1,19 @@
 package tw.wally.dixit.model;
 
-import lombok.Getter;
-
 import static java.lang.String.format;
 
 /**
  * @author - wally55077@gmail.com
  */
-@Getter
 public class Story {
     public static int MAX_LENGTH_OF_PHRASE = 20;
     private final String phrase;
-    private final Player player;
-    private final Card card;
+    private final PlayCard playCard;
 
-    public Story(String phrase, Player player, Card card) {
+    public Story(String phrase, PlayCard playCard) {
         validatePhraseLength(phrase);
         this.phrase = phrase;
-        this.player = player;
-        this.card = card;
+        this.playCard = playCard;
     }
 
     private void validatePhraseLength(String phrase) {
@@ -27,7 +22,15 @@ public class Story {
         }
     }
 
+    public Player getPlayer() {
+        return playCard.getPlayer();
+    }
+
+    public PlayCard getPlayCard() {
+        return playCard;
+    }
+
     public int getCardId() {
-        return card.getId();
+        return playCard.getCardId();
     }
 }

@@ -76,15 +76,15 @@ public class Game {
     }
 
     public void tellStory(String phrase, Player player, Card card) {
-        getCurrentRound().setStory(new Story(phrase, player, card));
+        getCurrentRound().tellStory(new Story(phrase, new PlayCard(player, card)));
     }
 
     public void playCard(Player player, Card card) {
-        getCurrentRound().addPlayCard(new PlayCard(player, card));
+        getCurrentRound().playCard(new PlayCard(player, card));
     }
 
     public void guessStory(Player guesser, PlayCard playCard) {
-        getCurrentRound().addGuess(new Guess(guesser, playCard));
+        getCurrentRound().guessStory(new Guess(guesser, playCard));
     }
 
     public void score() {

@@ -1,8 +1,6 @@
 package tw.wally.dixit.model;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.lang.String.format;
 import static java.util.List.copyOf;
@@ -13,7 +11,8 @@ import static tw.wally.dixit.utils.StreamUtils.*;
  */
 public class Round {
     public static final int BONUS_SCORE = 1;
-    public static final int ANSWER_CORRECTLY_SCORE = 3;
+    public static final int NORMAL_SCORE = 2;
+    public static final int GUESS_CORRECTLY_SCORE = 3;
     private final Player storyteller;
     private final List<Player> guessers;
     private final Map<Integer, PlayCard> playCards;
@@ -31,7 +30,13 @@ public class Round {
         this.guesses = new HashMap<>(numberOfGuessers);
     }
 
-    public void setStory(Story story) {
+    public void tellStory(Story story) {
+        validateTellStoryAction(story);
+        this.story = story;
+        roundState = RoundState.CARD_PLAYING;
+    }
+
+    private void validateTellStoryAction(Story story) {
         if (RoundState.STORY_TELLING != roundState) {
             throw new IllegalArgumentException("When the round state isn't story telling, storyteller can't tell the story.");
         }
@@ -41,11 +46,17 @@ public class Round {
         if (!storyteller.equals(story.getPlayer())) {
             throw new IllegalArgumentException("Guesser can't tell the story.");
         }
-        this.story = story;
-        roundState = RoundState.CARD_PLAYING;
     }
 
-    public void addPlayCard(PlayCard playCard) {
+    public void playCard(PlayCard playCard) {
+        validatePlayCard(playCard);
+        playCards.put(playCard.getCardId(), playCard);
+        if (playCards.size() == numberOfGuessers) {
+            roundState = RoundState.PLAYER_GUESSING;
+        }
+    }
+
+    private void validatePlayCard(PlayCard playCard) {
         if (RoundState.CARD_PLAYING != roundState) {
             throw new IllegalArgumentException("When the round state isn't card playing, guesser can't play the card.");
         }
@@ -56,13 +67,18 @@ public class Round {
         if (contains(playCards.values(), card -> card.getPlayer().equals(player))) {
             throw new IllegalArgumentException(format("Player: %s can't play the card twice in same round.", player.getName()));
         }
-        playCards.put(playCard.getCardId(), playCard);
-        if (playCards.size() == numberOfGuessers) {
-            roundState = RoundState.PLAYER_GUESSING;
+    }
+
+    public void guessStory(Guess guess) {
+        validateGuessAction(guess);
+        var guesser = guess.getGuesser();
+        guesses.put(guesser, guess);
+        if (guesses.size() == numberOfGuessers) {
+            roundState = RoundState.SCORING;
         }
     }
 
-    public void addGuess(Guess guess) {
+    private void validateGuessAction(Guess guess) {
         if (RoundState.PLAYER_GUESSING != roundState) {
             throw new IllegalArgumentException("When the round state isn't player guessing, guesser can't guess the story.");
         }
@@ -73,39 +89,35 @@ public class Round {
         if (guesses.containsKey(guesser)) {
             throw new IllegalArgumentException(format("Guesser: %s can't guess the story twice in same round.", guesser.getName()));
         }
-        guesses.put(guesser, guess);
-        if (guesses.size() == numberOfGuessers) {
-            roundState = RoundState.SCORING;
-        }
     }
 
     public void score() {
         if (RoundState.SCORING != roundState) {
             throw new IllegalArgumentException("When the round state isn't scoring, Round can't score.");
         }
-        long numberOfAllGuessersWhoGuessesStoryCorrectly =
+        var numberOfCorrectGuessers =
                 count(guesses.values(), guess -> storyteller.equals(guess.getPlayCard().getPlayer()));
-        if (numberOfAllGuessersWhoGuessesStoryCorrectly == numberOfGuessers) {
-            guessers.forEach(player -> player.addScore(2));
-        } else if (numberOfAllGuessersWhoGuessesStoryCorrectly == 0) {
-            guessers.forEach(player -> player.addScore(2));
-            addBonusScoreToGuesserWhoseCardIsGuessedByOtherGuesser();
-        } else if (numberOfAllGuessersWhoGuessesStoryCorrectly < numberOfGuessers) {
-            storyteller.addScore(ANSWER_CORRECTLY_SCORE);
-            addScoreToGuesserWhoGuessedStoryCorrectly();
-            addBonusScoreToGuesserWhoseCardIsGuessedByOtherGuesser();
+        if (numberOfCorrectGuessers == numberOfGuessers) {
+            guessers.forEach(player -> player.addScore(NORMAL_SCORE));
+        } else if (numberOfCorrectGuessers == 0) {
+            guessers.forEach(player -> player.addScore(NORMAL_SCORE));
+            scoreBonusGuessers();
+        } else if (numberOfCorrectGuessers < numberOfGuessers) {
+            storyteller.addScore(GUESS_CORRECTLY_SCORE);
+            scoreCorrectGuessers();
+            scoreBonusGuessers();
         }
         roundState = RoundState.ENDED;
     }
 
-    private void addScoreToGuesserWhoGuessedStoryCorrectly() {
+    private void scoreCorrectGuessers() {
         guesses.values().stream()
                 .filter(guess -> storyteller.equals(guess.getPlayCard().getPlayer()))
                 .map(Guess::getGuesser)
-                .forEach(player -> player.addScore(ANSWER_CORRECTLY_SCORE));
+                .forEach(player -> player.addScore(GUESS_CORRECTLY_SCORE));
     }
 
-    private void addBonusScoreToGuesserWhoseCardIsGuessedByOtherGuesser() {
+    private void scoreBonusGuessers() {
         guesses.values().stream()
                 .map(Guess::getPlayCard)
                 .map(PlayCard::getPlayer)
@@ -115,7 +127,7 @@ public class Round {
 
     public PlayCard getPlayCardByCardId(int cardId) {
         if (story.getCardId() == cardId) {
-            return new PlayCard(storyteller, story.getCard());
+            return story.getPlayCard();
         }
         return playCards.get(cardId);
     }
@@ -125,9 +137,9 @@ public class Round {
     }
 
     public List<Card> getCards() {
-        var cards = mapToList(playCards.values(), PlayCard::getCard);
-        cards.add(story.getCard());
-        return cards;
+        var playCards = new LinkedList<>(this.playCards.values());
+        playCards.add(story.getPlayCard());
+        return mapToList(playCards, PlayCard::getCard);
     }
 
     public Player getStoryteller() {

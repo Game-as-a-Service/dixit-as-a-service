@@ -5,7 +5,7 @@ import java.util.*;
 import static java.lang.String.format;
 import static java.util.Objects.hash;
 import static tw.wally.dixit.model.Game.*;
-import static tw.wally.dixit.model.Round.ANSWER_CORRECTLY_SCORE;
+import static tw.wally.dixit.model.Round.GUESS_CORRECTLY_SCORE;
 import static tw.wally.dixit.model.Round.BONUS_SCORE;
 
 /**
@@ -40,8 +40,8 @@ public class Player {
     }
 
     public void addScore(int score) {
-        if (score < BONUS_SCORE || score > ANSWER_CORRECTLY_SCORE) {
-            throw new IllegalArgumentException(format("Score can't be lower than %d or higher than %d.", BONUS_SCORE, ANSWER_CORRECTLY_SCORE));
+        if (score < BONUS_SCORE || score > GUESS_CORRECTLY_SCORE) {
+            throw new IllegalArgumentException(format("Score can't be lower than %d or higher than %d.", BONUS_SCORE, GUESS_CORRECTLY_SCORE));
         }
         this.score += score;
     }

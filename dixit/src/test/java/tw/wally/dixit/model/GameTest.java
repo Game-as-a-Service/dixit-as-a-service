@@ -10,7 +10,7 @@ import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static tw.wally.dixit.model.Game.NUMBER_OF_PLAYER_HAND_CARDS;
-import static tw.wally.dixit.model.Round.ANSWER_CORRECTLY_SCORE;
+import static tw.wally.dixit.model.Round.GUESS_CORRECTLY_SCORE;
 import static tw.wally.dixit.utils.StreamUtils.limit;
 
 public class GameTest extends AbstractDixitTest {
@@ -164,10 +164,10 @@ public class GameTest extends AbstractDixitTest {
     }
 
     private void makePlayersAchieveWinningScore(Collection<Player> players) {
-        int scoreTimes = DEFAULT_WINNING_SCORE / ANSWER_CORRECTLY_SCORE;
+        int scoreTimes = DEFAULT_WINNING_SCORE / GUESS_CORRECTLY_SCORE;
         for (var player : players) {
             for (int currentTime = 0; currentTime < scoreTimes; currentTime++) {
-                player.addScore(ANSWER_CORRECTLY_SCORE);
+                player.addScore(GUESS_CORRECTLY_SCORE);
             }
         }
     }

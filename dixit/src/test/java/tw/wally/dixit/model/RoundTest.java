@@ -202,13 +202,13 @@ public class RoundTest extends AbstractDixitTest {
 
     private void tellStory(Player player) {
         var card = getRandomCard(player);
-        currentRound.setStory(new Story(FAKE_PHRASE, player, card));
+        currentRound.tellStory(new Story(FAKE_PHRASE, new PlayCard(player, card)));
         cardOfPlayers.put(player, card);
     }
 
     private void playCard(Player player) {
         var card = getRandomCard(player);
-        currentRound.addPlayCard(new PlayCard(player, card));
+        currentRound.playCard(new PlayCard(player, card));
         cardOfPlayers.put(player, card);
     }
 
@@ -225,7 +225,7 @@ public class RoundTest extends AbstractDixitTest {
     private void guessStory(Player guesser, Player playerWhoBeGuessed) {
         int cardId = cardOfPlayers.get(playerWhoBeGuessed).getId();
         var playCard = currentRound.getPlayCardByCardId(cardId);
-        currentRound.addGuess(new Guess(guesser, playCard));
+        currentRound.guessStory(new Guess(guesser, playCard));
     }
 
     private void givenStoryToldAndAllGuessersPlayedCardAndGuessedStory() {
