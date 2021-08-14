@@ -21,9 +21,9 @@ public class Round {
     private RoundState roundState;
     private Story story;
 
-    public Round(Player storyTeller, List<Player> guessers) {
+    public Round(Player storyteller, List<Player> guessers) {
         this.roundState = RoundState.STORY_TELLING;
-        this.storyteller = storyTeller;
+        this.storyteller = storyteller;
         this.guessers = copyOf(guessers);
         this.numberOfGuessers = guessers.size();
         this.playCards = new HashMap<>(numberOfGuessers);
