@@ -1,6 +1,10 @@
 package tw.wally.dixit.model;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
 
 import static java.lang.String.format;
 import static java.util.List.copyOf;
@@ -37,9 +41,7 @@ public class Round {
     }
 
     private void validateTellStoryAction(Story story) {
-        if (RoundState.STORY_TELLING != roundState) {
-            throw new IllegalArgumentException("When the round state isn't story telling, storyteller can't tell the story.");
-        }
+        validateRoundState(RoundState.STORY_TELLING, () -> "When the round state isn't story telling, storyteller can't tell the story.");
         if (this.story != null) {
             throw new IllegalArgumentException("Story has existed, storyteller can't tell the story again.");
         }
@@ -57,9 +59,7 @@ public class Round {
     }
 
     private void validatePlayCard(PlayCard playCard) {
-        if (RoundState.CARD_PLAYING != roundState) {
-            throw new IllegalArgumentException("When the round state isn't card playing, guesser can't play the card.");
-        }
+        validateRoundState(RoundState.CARD_PLAYING, () -> "When the round state isn't card playing, guesser can't play the card.");
         if (playCards.size() == numberOfGuessers) {
             throw new IllegalArgumentException(format("Number of playCards can't be higher than %d.", numberOfGuessers));
         }
@@ -79,9 +79,7 @@ public class Round {
     }
 
     private void validateGuessAction(Guess guess) {
-        if (RoundState.PLAYER_GUESSING != roundState) {
-            throw new IllegalArgumentException("When the round state isn't player guessing, guesser can't guess the story.");
-        }
+        validateRoundState(RoundState.PLAYER_GUESSING, () -> "When the round state isn't player guessing, guesser can't guess the story.");
         if (guesses.size() == numberOfGuessers) {
             throw new IllegalArgumentException(format("Number of guesses can't be higher than %d.", numberOfGuessers));
         }
@@ -92,9 +90,7 @@ public class Round {
     }
 
     public void score() {
-        if (RoundState.SCORING != roundState) {
-            throw new IllegalArgumentException("When the round state isn't scoring, Round can't score.");
-        }
+        validateRoundState(RoundState.SCORING, () -> "When the round state isn't scoring, Round can't score.");
         var numberOfCorrectGuessers =
                 count(guesses.values(), guess -> storyteller.equals(guess.getPlayCard().getPlayer()));
         if (numberOfCorrectGuessers == numberOfGuessers) {
@@ -108,6 +104,12 @@ public class Round {
             scoreBonusGuessers();
         }
         roundState = RoundState.ENDED;
+    }
+
+    private void validateRoundState(RoundState expectedState, Supplier<String> errorMessageSupplier) {
+        if (expectedState != roundState) {
+            throw new IllegalArgumentException(errorMessageSupplier.get());
+        }
     }
 
     private void scoreCorrectGuessers() {

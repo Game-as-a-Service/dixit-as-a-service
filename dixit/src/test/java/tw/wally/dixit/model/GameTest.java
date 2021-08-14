@@ -69,7 +69,8 @@ public class GameTest extends AbstractDixitTest {
 
     @Test
     public void GivenFirstRoundScored_WhenGameWithdrawsCards_ThenShouldSuccess() {
-        givenGameStartedWithPlayersAndGameScored(5);
+        givenGameStartedWithPlayersAndStoryToldAndAllPlayerPlayedCardAndGuessedStory(5);
+        dixit.score();
 
         dixit.withdrawCards();
 
@@ -80,7 +81,8 @@ public class GameTest extends AbstractDixitTest {
 
     @Test
     public void GivenFirstRoundScored_WhenSecondRoundStart_ThenPlayersShouldHaveSixCardsAndCurrentRoundShouldBeSecondRound() {
-        givenGameStartedWithPlayersAndGameScored(6);
+        givenGameStartedWithPlayersAndStoryToldAndAllPlayerPlayedCardAndGuessedStory(6);
+        dixit.score();
         dixit.withdrawCards();
 
         dixit.startNextRound();
@@ -109,11 +111,6 @@ public class GameTest extends AbstractDixitTest {
         dixit.score();
 
         assertGameShouldHaveWinners(players);
-    }
-
-    private void givenGameStartedWithPlayersAndGameScored(int numberOfPlayers) {
-        givenGameStartedWithPlayersAndStoryToldAndAllPlayerPlayedCardAndGuessedStory(numberOfPlayers);
-        dixit.score();
     }
 
     private void givenGameStartedWithPlayersAndStoryToldAndAllPlayerPlayedCardAndGuessedStory(int numberOfPlayers) {

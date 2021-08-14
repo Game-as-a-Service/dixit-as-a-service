@@ -30,7 +30,7 @@ public class PlayerTest extends AbstractDixitTest {
     }
 
     @Test
-    public void WhenDealOneCardsToPlayer_ThenPlayerShouldHaveOneCard() {
+    public void WhenDealOneCardToPlayer_ThenPlayerShouldHaveOneCard() {
         var cards = generateCards(1);
 
         player.addHandCards(cards);
@@ -46,8 +46,8 @@ public class PlayerTest extends AbstractDixitTest {
     }
 
     @Test
-    public void GivenPlayerHasSixCard_WhenPlayerPlayExistentCard_ThenPlayerShouldHaveFiveCards() {
-        dealPlayerSixCards();
+    public void GivenPlayerHasSixCards_WhenPlayOneHandCard_ThenPlayerShouldHaveFiveCards() {
+        dealSixCards();
 
         playRandomCard();
 
@@ -55,23 +55,23 @@ public class PlayerTest extends AbstractDixitTest {
     }
 
     @Test
-    public void GivenPlayerHasSixCard_WhenPlayerPlayNonexistentCard_ThenShouldFail() {
-        dealPlayerSixCards();
+    public void GivenPlayerHasSixCards_WhenPlayOneCardNotInHisHandCards_ThenShouldFail() {
+        dealSixCards();
 
         assertThrows(IllegalArgumentException.class, () -> player.playCard(-1));
     }
 
     @Test
-    public void WhenPlayerAddInvalidScore_ThenShouldFail() {
+    public void WhenAddInvalidScores_ThenShouldFail() {
         assertThrows(IllegalArgumentException.class, () -> player.addScore(0));
         assertThrows(IllegalArgumentException.class, () -> player.addScore(4));
     }
 
-    private void dealPlayerSixCards() {
-        dealPlayerCards(generateCards(NUMBER_OF_PLAYER_HAND_CARDS));
+    private void dealSixCards() {
+        dealCards(generateCards(NUMBER_OF_PLAYER_HAND_CARDS));
     }
 
-    private void dealPlayerCards(Collection<Card> cards) {
+    private void dealCards(Collection<Card> cards) {
         player.addHandCards(cards);
     }
 

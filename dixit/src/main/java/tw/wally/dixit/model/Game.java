@@ -47,7 +47,7 @@ public class Game {
     public void start() {
         validatePlayersAmount();
         gameState = GameState.STARTED;
-        dealAllPlayersCards(NUMBER_OF_PLAYER_HAND_CARDS);
+        dealCardsToAllPlayers(NUMBER_OF_PLAYER_HAND_CARDS);
         startNewRound();
     }
 
@@ -59,11 +59,11 @@ public class Game {
     }
 
     public void startNextRound() {
-        dealAllPlayersCards(NUMBER_OF_DEALT_CARD);
+        dealCardsToAllPlayers(NUMBER_OF_DEALT_CARD);
         startNewRound();
     }
 
-    private void dealAllPlayersCards(int numberOfCard) {
+    private void dealCardsToAllPlayers(int numberOfCard) {
         players.forEach(player -> player.addHandCards(generate(numberOfCard, index -> deck.pollLast())));
     }
 
@@ -71,12 +71,12 @@ public class Game {
         shuffle(deck);
         currentStoryTellerPosition++;
         var storyteller = players.get(currentStoryTellerPosition % players.size());
-        var otherPlayers = filter(players, player -> player != storyteller);
-        rounds.add(new Round(storyteller, otherPlayers));
+        var guessers = filter(players, player -> player != storyteller);
+        rounds.add(new Round(storyteller, guessers));
     }
 
-    public void tellStory(String phrase, Player player, Card card) {
-        getCurrentRound().tellStory(new Story(phrase, new PlayCard(player, card)));
+    public void tellStory(String phrase, Player storyteller, Card card) {
+        getCurrentRound().tellStory(new Story(phrase, new PlayCard(storyteller, card)));
     }
 
     public void playCard(Player player, Card card) {
