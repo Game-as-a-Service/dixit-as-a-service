@@ -1,5 +1,11 @@
 package tw.wally.dixit.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import tw.wally.dixit.exceptions.InvalidGameOperationException;
+import tw.wally.dixit.exceptions.InvalidGameStateException;
+
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -13,6 +19,9 @@ import static tw.wally.dixit.utils.StreamUtils.*;
 /**
  * @author - wally55077@gmail.com
  */
+@Getter
+@Builder
+@AllArgsConstructor
 public class Round {
     public static final int BONUS_SCORE = 1;
     public static final int NORMAL_SCORE = 2;
@@ -43,10 +52,10 @@ public class Round {
     private void validateTellStoryAction(Story story) {
         validateRoundState(RoundState.STORY_TELLING, () -> "When the round state isn't story telling, storyteller can't tell the story.");
         if (this.story != null) {
-            throw new IllegalArgumentException("Story has existed, storyteller can't tell the story again.");
+            throw new InvalidGameOperationException("Story has existed, storyteller can't tell the story again.");
         }
         if (!storyteller.equals(story.getPlayer())) {
-            throw new IllegalArgumentException("Guesser can't tell the story.");
+            throw new InvalidGameOperationException("Guesser can't tell the story.");
         }
     }
 
@@ -61,11 +70,11 @@ public class Round {
     private void validatePlayCard(PlayCard playCard) {
         validateRoundState(RoundState.CARD_PLAYING, () -> "When the round state isn't card playing, guesser can't play the card.");
         if (playCards.size() == numberOfGuessers) {
-            throw new IllegalArgumentException(format("Number of playCards can't be higher than %d.", numberOfGuessers));
+            throw new InvalidGameOperationException(format("Number of playCards can't be higher than %d.", numberOfGuessers));
         }
         var player = playCard.getPlayer();
         if (contains(playCards.values(), card -> card.getPlayer().equals(player))) {
-            throw new IllegalArgumentException(format("Player: %s can't play the card twice in same round.", player.getName()));
+            throw new InvalidGameOperationException(format("Player: %s can't play the card twice in same round.", player.getName()));
         }
     }
 
@@ -81,11 +90,11 @@ public class Round {
     private void validateGuessAction(Guess guess) {
         validateRoundState(RoundState.PLAYER_GUESSING, () -> "When the round state isn't player guessing, guesser can't guess the story.");
         if (guesses.size() == numberOfGuessers) {
-            throw new IllegalArgumentException(format("Number of guesses can't be higher than %d.", numberOfGuessers));
+            throw new InvalidGameOperationException(format("Number of guesses can't be higher than %d.", numberOfGuessers));
         }
         var guesser = guess.getGuesser();
         if (guesses.containsKey(guesser)) {
-            throw new IllegalArgumentException(format("Guesser: %s can't guess the story twice in same round.", guesser.getName()));
+            throw new InvalidGameOperationException(format("Guesser: %s can't guess the story twice in same round.", guesser.getName()));
         }
     }
 
@@ -108,7 +117,7 @@ public class Round {
 
     private void validateRoundState(RoundState expectedState, Supplier<String> errorMessageSupplier) {
         if (expectedState != roundState) {
-            throw new IllegalArgumentException(errorMessageSupplier.get());
+            throw new InvalidGameStateException(errorMessageSupplier.get());
         }
     }
 

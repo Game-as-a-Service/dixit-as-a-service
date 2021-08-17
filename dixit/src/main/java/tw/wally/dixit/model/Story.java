@@ -1,10 +1,14 @@
 package tw.wally.dixit.model;
 
+import lombok.Getter;
+import tw.wally.dixit.exceptions.InvalidGameOperationException;
+
 import static java.lang.String.format;
 
 /**
  * @author - wally55077@gmail.com
  */
+@Getter
 public class Story {
     public static int MAX_LENGTH_OF_PHRASE = 20;
     private final String phrase;
@@ -18,7 +22,7 @@ public class Story {
 
     private void validatePhraseLength(String phrase) {
         if (phrase.length() > MAX_LENGTH_OF_PHRASE) {
-            throw new IllegalArgumentException(format("Phrase: %s length cannot exceed the limit %d", phrase, MAX_LENGTH_OF_PHRASE));
+            throw new InvalidGameOperationException(format("Phrase: %s length cannot exceed the limit %d", phrase, MAX_LENGTH_OF_PHRASE));
         }
     }
 

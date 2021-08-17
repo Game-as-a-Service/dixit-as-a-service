@@ -1,6 +1,7 @@
 package tw.wally.dixit.model;
 
 import lombok.Getter;
+import tw.wally.dixit.exceptions.InvalidGameOperationException;
 
 import java.util.Set;
 
@@ -14,7 +15,7 @@ import static java.util.Set.of;
 public class VictoryCondition {
 
     private static final Set<Integer> WINNING_SCORE_RANGE = of(25, 30, 35);
-    public final int winningScore;
+    private final int winningScore;
 
     public VictoryCondition(int winningScore) {
         validateWinningScore(winningScore);
@@ -27,7 +28,7 @@ public class VictoryCondition {
 
     private void validateWinningScore(int winningScore) {
         if (!WINNING_SCORE_RANGE.contains(winningScore)) {
-            throw new IllegalArgumentException(format("Winning score should be %s", WINNING_SCORE_RANGE));
+            throw new InvalidGameOperationException(format("Winning score should be %s", WINNING_SCORE_RANGE));
         }
     }
 

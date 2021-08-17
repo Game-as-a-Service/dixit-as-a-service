@@ -1,5 +1,11 @@
 package tw.wally.dixit.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import tw.wally.dixit.exceptions.InvalidGameOperationException;
+import tw.wally.dixit.exceptions.InvalidGameStateException;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -13,11 +19,15 @@ import static tw.wally.dixit.utils.StreamUtils.generate;
 /**
  * @author - wally55077@gmail.com
  */
-public class Game {
+@Getter
+@Builder
+@AllArgsConstructor
+public class Dixit {
     public static final int NUMBER_OF_PLAYER_HAND_CARDS = 6;
     public static final int NUMBER_OF_DEALT_CARD = 1;
     public static final int MIN_NUMBER_OF_PLAYERS = 4;
     public static final int MAX_NUMBER_OF_PLAYERS = 6;
+    private final String id;
     private final VictoryCondition victoryCondition;
     private final LinkedList<Card> deck;
     private final List<Player> players;
@@ -26,20 +36,22 @@ public class Game {
     private GameState gameState;
     private Collection<Player> winners;
 
-    public Game(VictoryCondition victoryCondition, Collection<Card> cards) {
+    public Dixit(String id, VictoryCondition victoryCondition, Collection<Card> cards) {
         this.gameState = GameState.PREPARING;
+        this.id = id;
         this.victoryCondition = victoryCondition;
         this.deck = new LinkedList<>(cards);
         this.players = new ArrayList<>(MAX_NUMBER_OF_PLAYERS);
         this.rounds = new LinkedList<>();
+        this.winners = new ArrayList<>(MAX_NUMBER_OF_PLAYERS);
     }
 
     public void join(Player player) {
         if (GameState.PREPARING != gameState) {
-            throw new IllegalArgumentException("When the game is preparing, player can't join the game");
+            throw new InvalidGameStateException("When the game is preparing, player can't join the game");
         }
         if (players.size() >= MAX_NUMBER_OF_PLAYERS) {
-            throw new IllegalArgumentException(format("Number of players can't be higher than %d.", MAX_NUMBER_OF_PLAYERS));
+            throw new InvalidGameOperationException(format("Number of players can't be higher than %d.", MAX_NUMBER_OF_PLAYERS));
         }
         players.add(player);
     }
@@ -54,7 +66,7 @@ public class Game {
     private void validatePlayersAmount() {
         int numberOfPlayers = players.size();
         if (numberOfPlayers < MIN_NUMBER_OF_PLAYERS || numberOfPlayers > MAX_NUMBER_OF_PLAYERS) {
-            throw new IllegalArgumentException(format("Number of players can't be lower than %d or higher than %d.", MIN_NUMBER_OF_PLAYERS, MAX_NUMBER_OF_PLAYERS));
+            throw new InvalidGameOperationException(format("Number of players can't be lower than %d or higher than %d.", MIN_NUMBER_OF_PLAYERS, MAX_NUMBER_OF_PLAYERS));
         }
     }
 

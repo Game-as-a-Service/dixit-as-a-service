@@ -5,10 +5,12 @@ import lombok.NoArgsConstructor;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
@@ -28,12 +30,22 @@ public class StreamUtils {
         return collection.stream().map(mapper).collect(toList());
     }
 
+    public static <T, K, U> Map<K, U> toMap(Collection<T> collection,
+                                            Function<? super T, ? extends K> keyMapper,
+                                            Function<T, U> valueMapper) {
+        return collection.stream().collect(Collectors.toMap(keyMapper, valueMapper));
+    }
+
     public static <T> List<T> generate(int count, IntFunction<T> mapper) {
         return range(0, count).mapToObj(mapper).collect(toList());
     }
 
     public static <T> List<T> filter(Collection<T> collection, Predicate<T> predicate) {
         return collection.stream().filter(predicate).collect(toList());
+    }
+
+    public static <T> Optional<T> findFirst(Collection<T> collection, Predicate<T> predicate) {
+        return collection.stream().filter(predicate).findFirst();
     }
 
     public static <T> List<T> limit(Collection<T> collection, int limit) {

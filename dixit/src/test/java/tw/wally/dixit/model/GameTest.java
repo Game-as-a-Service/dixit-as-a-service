@@ -2,6 +2,8 @@ package tw.wally.dixit.model;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tw.wally.dixit.exceptions.InvalidGameOperationException;
+import tw.wally.dixit.exceptions.InvalidGameStateException;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -9,7 +11,7 @@ import java.util.Map;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static tw.wally.dixit.model.Game.NUMBER_OF_PLAYER_HAND_CARDS;
+import static tw.wally.dixit.model.Dixit.NUMBER_OF_PLAYER_HAND_CARDS;
 import static tw.wally.dixit.model.Round.GUESS_CORRECTLY_SCORE;
 import static tw.wally.dixit.utils.StreamUtils.limit;
 
@@ -17,13 +19,13 @@ public class GameTest extends AbstractDixitTest {
 
     public static final int DEFAULT_CARD_SIZE = 36;
     public static final int DEFAULT_WINNING_SCORE = 30;
-    private Game dixit;
+    private Dixit dixit;
     private Map<Player, Card> cardOfPlayers;
 
     @BeforeEach
     public void beforeTest() {
-        this.dixit = new Game(new VictoryCondition(DEFAULT_WINNING_SCORE), generateCards(DEFAULT_CARD_SIZE));
-        this.cardOfPlayers = new HashMap<>(Game.MAX_NUMBER_OF_PLAYERS);
+        this.dixit = new Dixit("1", new VictoryCondition(DEFAULT_WINNING_SCORE), generateCards(DEFAULT_CARD_SIZE));
+        this.cardOfPlayers = new HashMap<>(Dixit.MAX_NUMBER_OF_PLAYERS);
     }
 
     @Test
@@ -31,21 +33,21 @@ public class GameTest extends AbstractDixitTest {
         var expectedPlayers = generatePlayers(4);
         joinGame(expectedPlayers);
 
-        assertGamePreparingAndPlayersJoinedGame(expectedPlayers);
+        assertGameIsPreparingAndPlayersJoinedGame(expectedPlayers);
     }
 
     @Test
     public void WhenSevenPlayersJoinCreatedGame_ThenGameShouldFail() {
         var players = generatePlayers(7);
 
-        assertThrows(IllegalArgumentException.class, () -> joinGame(players));
+        assertThrows(InvalidGameOperationException.class, () -> joinGame(players));
     }
 
     @Test
     public void GivenTwoPlayersJoinedGame_WhenGameStart_ThenGameShouldFail() {
         givenPlayersJoinGame(2);
 
-        assertThrows(IllegalArgumentException.class, () -> dixit.start());
+        assertThrows(InvalidGameOperationException.class, () -> dixit.start());
     }
 
     @Test
@@ -53,11 +55,11 @@ public class GameTest extends AbstractDixitTest {
         givenPlayersJoinGame(4);
         dixit.start();
 
-        assertThrows(IllegalArgumentException.class, () -> givenPlayersJoinGame(2));
+        assertThrows(InvalidGameStateException.class, () -> givenPlayersJoinGame(2));
     }
 
     @Test
-    public void GivenFourPlayersJoinedGame_WhenGameStart_ThenPlayersShouldHaveSixCardsAndGameShouldStartAndCurrentRoundShouldBeFirstRound() {
+    public void GivenFourPlayersJoinedGame_WhenGameStart_ThenEachPlayerShouldHaveSixCardsAndGameShouldStartAndCurrentRoundShouldBeFirstRound() {
         givenPlayersJoinGame(4);
 
         dixit.start();
@@ -69,7 +71,7 @@ public class GameTest extends AbstractDixitTest {
 
     @Test
     public void GivenFirstRoundScored_WhenGameWithdrawsCards_ThenShouldSuccess() {
-        givenGameStartedWithPlayersAndStoryToldAndAllPlayerPlayedCardAndGuessedStory(5);
+        givenGameStartedAndRoundStateIsPlayerGuessing(5);
         dixit.score();
 
         dixit.withdrawCards();
@@ -80,8 +82,8 @@ public class GameTest extends AbstractDixitTest {
     }
 
     @Test
-    public void GivenFirstRoundScored_WhenSecondRoundStart_ThenPlayersShouldHaveSixCardsAndCurrentRoundShouldBeSecondRound() {
-        givenGameStartedWithPlayersAndStoryToldAndAllPlayerPlayedCardAndGuessedStory(6);
+    public void GivenFirstRoundScored_WhenSecondRoundStart_ThenEachPlayerShouldHaveSixCardsAndCurrentRoundShouldBeSecondRound() {
+        givenGameStartedAndRoundStateIsPlayerGuessing(6);
         dixit.score();
         dixit.withdrawCards();
 
@@ -92,28 +94,28 @@ public class GameTest extends AbstractDixitTest {
     }
 
     @Test
-    public void GivenGameStartedWithFourPlayersAndOneOfPlayersAchievedWinningScore_WhenGameScore_ThenGameStateShouldBeEndedAndShouldHaveOneWinner() {
-        givenGameStartedWithPlayersAndStoryToldAndAllPlayerPlayedCardAndGuessedStory(4);
+    public void GivenGameScored_WhenOnePlayerAchievedWinningScore_ThenGameStateShouldBeEndedAndShouldHaveOneWinner() {
+        givenGameStartedAndRoundStateIsPlayerGuessing(4);
         var players = limit(dixit.getCurrentGuessers(), 1);
         makePlayersAchieveWinningScore(players);
 
         dixit.score();
 
-        assertGameShouldHaveWinners(players);
+        assertGameIsEndAndShouldHaveWinners(players);
     }
 
     @Test
-    public void GivenGameStartedWithFourPlayersAndTwoPlayersAchievedWinningScore_WhenGameScore_ThenGameShouldHaveTwoWinners() {
-        givenGameStartedWithPlayersAndStoryToldAndAllPlayerPlayedCardAndGuessedStory(4);
+    public void GivenGameScored_WhenTwoPlayersAchievedWinningScore_ThenGameShouldHaveTwoWinners() {
+        givenGameStartedAndRoundStateIsPlayerGuessing(4);
         var players = limit(dixit.getCurrentGuessers(), 2);
         makePlayersAchieveWinningScore(players);
 
         dixit.score();
 
-        assertGameShouldHaveWinners(players);
+        assertGameIsEndAndShouldHaveWinners(players);
     }
 
-    private void givenGameStartedWithPlayersAndStoryToldAndAllPlayerPlayedCardAndGuessedStory(int numberOfPlayers) {
+    private void givenGameStartedAndRoundStateIsPlayerGuessing(int numberOfPlayers) {
         givenPlayersJoinGame(numberOfPlayers);
         dixit.start();
         tellStory();
@@ -169,7 +171,7 @@ public class GameTest extends AbstractDixitTest {
         }
     }
 
-    private void assertGamePreparingAndPlayersJoinedGame(Collection<Player> expectedPlayers) {
+    private void assertGameIsPreparingAndPlayersJoinedGame(Collection<Player> expectedPlayers) {
         assertEquals(GameState.PREPARING, dixit.getGameState());
         var actualPlayers = dixit.getPlayers();
         assertEquals(expectedPlayers.size(), actualPlayers.size());
@@ -181,7 +183,7 @@ public class GameTest extends AbstractDixitTest {
         assertEquals(numberOfRounds, dixit.getNumberOfRounds());
     }
 
-    private void assertGameShouldHaveWinners(Collection<Player> players) {
+    private void assertGameIsEndAndShouldHaveWinners(Collection<Player> players) {
         assertEquals(GameState.ENDED, dixit.getGameState());
         var winners = dixit.getWinners();
         assertEquals(players.size(), winners.size());

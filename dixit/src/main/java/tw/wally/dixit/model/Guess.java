@@ -1,6 +1,7 @@
 package tw.wally.dixit.model;
 
 import lombok.Getter;
+import tw.wally.dixit.exceptions.InvalidGameOperationException;
 
 /**
  * @author - wally55077@gmail.com
@@ -18,7 +19,7 @@ public class Guess {
 
     private void validateGuess(Player guesser, PlayCard playCard) {
         if (guesser.equals(playCard.getPlayer())) {
-            throw new IllegalArgumentException("Guesser can't guess self card");
+            throw new InvalidGameOperationException("Guesser can't guess self card");
         }
     }
 }
