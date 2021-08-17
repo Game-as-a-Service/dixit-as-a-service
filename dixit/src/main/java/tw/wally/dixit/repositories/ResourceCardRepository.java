@@ -1,0 +1,69 @@
+package tw.wally.dixit.repositories;
+
+import tw.wally.dixit.model.Card;
+
+import javax.inject.Named;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+
+import static java.nio.file.Files.walk;
+import static java.nio.file.Paths.get;
+import static java.util.Base64.getEncoder;
+import static java.util.stream.Collectors.toSet;
+import static tw.wally.dixit.utils.StreamUtils.generate;
+
+/**
+ * @author - wally55077@gmail.com
+ */
+@Named
+public class ResourceCardRepository implements CardRepository {
+
+    private static final String IMAGES_FOLDER_PATH = "/images";
+    private List<Card> cards;
+
+    @Override
+    public List<Card> findAll() {
+        if (cards == null) {
+            var images = new LinkedList<>(findImages(IMAGES_FOLDER_PATH));
+            cards = generate(images.size(), number -> new Card(number, images.pollLast()));
+        }
+        return cards;
+    }
+
+    private Collection<String> findImages(String path) {
+        try {
+            var resource = getClass().getResource(path);
+            if (resource == null) {
+                throw new RuntimeException("");
+            }
+            var images = walk(get(resource.toURI()))
+                    .filter(Files::isRegularFile)
+                    .map(Path::toFile)
+                    .map(this::toImage)
+                    .collect(toSet());
+            if (images.isEmpty()) {
+                throw new RuntimeException("");
+            }
+            return images;
+        } catch (IOException | URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private String toImage(File file) {
+        try (var inputStream = new FileInputStream(file)) {
+            var bytes = getEncoder().encode(inputStream.readAllBytes());
+            return new String(bytes);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+}

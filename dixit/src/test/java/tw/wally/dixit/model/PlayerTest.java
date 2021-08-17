@@ -17,7 +17,7 @@ public class PlayerTest extends AbstractDixitTest {
 
     @BeforeEach
     public void beforeTest() {
-        this.player = new Player("1", DIXIT_PLAYER);
+        this.player = new Player(DIXIT_PLAYER + "Id", DIXIT_PLAYER);
     }
 
     @Test
