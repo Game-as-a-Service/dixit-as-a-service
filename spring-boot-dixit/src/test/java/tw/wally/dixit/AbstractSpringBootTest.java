@@ -9,7 +9,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author - wally55077@gmail.com
@@ -53,6 +57,10 @@ public class AbstractSpringBootTest {
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
+    }
+
+    protected void assertEqualsIgnoreOrder(Collection<?> expected, Collection<?> actual) {
+        assertEquals(new HashSet<>(expected), new HashSet<>(actual));
     }
 
 }

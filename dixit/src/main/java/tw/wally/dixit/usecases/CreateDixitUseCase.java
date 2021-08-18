@@ -30,12 +30,12 @@ public class CreateDixitUseCase {
         dixit.join(game.host.toPlayer());
         mapToList(game.players, Gamer::toPlayer).forEach(dixit::join);
         dixit.start();
-        dixitRepository.save(dixit);
-        publishEvents(dixit);
+        dixit = dixitRepository.save(dixit);
+        mayPublishEvents(dixit);
     }
 
-    // TODO: 發佈事件 開始遊戲、回合說故事
-    private void publishEvents(Dixit dixit) {
+    // TODO: 發佈事件 開始遊戲、遊戲發牌、、新回合說故事
+    private void mayPublishEvents(Dixit dixit) {
 
     }
 

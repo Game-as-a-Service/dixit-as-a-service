@@ -76,7 +76,7 @@ public class GameTest extends AbstractDixitTest {
 
         dixit.withdrawCards();
 
-        int expectedDeckSize = getCurrentDeckSizeAfterDealCard(5) + dixit.getCurrentRound().getCards().size();
+        int expectedDeckSize = getCurrentDeckSizeAfterDealCard(5) + dixit.getCurrentRound().withdrawCards().size();
         int actualDeckSize = dixit.getDeckSize();
         assertEquals(expectedDeckSize, actualDeckSize);
     }

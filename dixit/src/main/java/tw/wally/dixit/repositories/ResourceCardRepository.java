@@ -26,15 +26,11 @@ import static tw.wally.dixit.utils.StreamUtils.generate;
 public class ResourceCardRepository implements CardRepository {
 
     private static final String IMAGES_FOLDER_PATH = "/images";
-    private List<Card> cards;
+    private final List<Card> cards;
 
-    @Override
-    public List<Card> findAll() {
-        if (cards == null) {
-            var images = new LinkedList<>(findImages(IMAGES_FOLDER_PATH));
-            cards = generate(images.size(), number -> new Card(number, images.pollLast()));
-        }
-        return cards;
+    public ResourceCardRepository() {
+        var images = new LinkedList<>(findImages(IMAGES_FOLDER_PATH));
+        this.cards = generate(images.size(), number -> new Card(number, images.pollLast()));
     }
 
     private Collection<String> findImages(String path) {
@@ -64,6 +60,11 @@ public class ResourceCardRepository implements CardRepository {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public List<Card> findAll() {
+        return cards;
     }
 
 }

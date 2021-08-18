@@ -16,13 +16,14 @@ public class FakeCardRepository implements CardRepository {
 
     private static final String CARD_IMAGE = "cardImage";
     private static final int DEFAULT_CARD_SIZE = 36;
-    private List<Card> cards;
+    private final List<Card> cards;
+
+    public FakeCardRepository() {
+        this.cards = generate(DEFAULT_CARD_SIZE, number -> new Card(number, CARD_IMAGE + number));
+    }
 
     @Override
     public List<Card> findAll() {
-        if (cards == null) {
-            cards = generate(DEFAULT_CARD_SIZE, number -> new Card(number, CARD_IMAGE + number));
-        }
         return cards;
     }
 }

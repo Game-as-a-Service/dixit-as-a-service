@@ -10,7 +10,6 @@ import tw.wally.dixit.model.GameState;
 
 import java.util.Collection;
 import java.util.LinkedList;
-import java.util.List;
 
 import static tw.wally.dixit.repositories.MongoDixitDAO.DIXIT;
 import static tw.wally.dixit.utils.StreamUtils.mapToList;
@@ -27,9 +26,9 @@ public class DixitData {
     @Id
     private final String id;
     private final VictoryConditionData victoryCondition;
-    private final LinkedList<CardData> deck;
-    private final List<PlayerData> players;
-    private final LinkedList<RoundData> rounds;
+    private final Collection<CardData> deck;
+    private final Collection<PlayerData> players;
+    private final Collection<RoundData> rounds;
     private int currentStoryTellerPosition;
     private GameState gameState;
     private Collection<PlayerData> winners;
