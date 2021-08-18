@@ -9,7 +9,7 @@ import tw.wally.dixit.repositories.ResourceCardRepository;
  * @author - wally55077@gmail.com
  */
 @Configuration
-public class DixitConfiguration {
+public class CardConfiguration {
 
     @Bean
     public CardRepository cardRepository() {

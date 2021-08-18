@@ -147,7 +147,7 @@ public class Round {
         return roundState;
     }
 
-    public List<Card> getCards() {
+    public List<Card> withdrawCards() {
         var playCards = new LinkedList<>(this.playCards.values());
         playCards.add(story.getPlayCard());
         return mapToList(playCards, PlayCard::getCard);

@@ -23,12 +23,13 @@ public class TellStoryUseCase extends AbstractDixitUseCase {
 
     public void execute(Request request) {
         var dixit = findDixit(request.gameId);
+        validateRound(dixit, request.round);
         validateStoryteller(dixit, request.playerId);
         var storyteller = dixit.getCurrentStoryteller();
         var card = storyteller.playCard(request.cardId);
         dixit.tellStory(request.phrase, storyteller, card);
-        dixitRepository.save(dixit);
-        publishEvents(dixit);
+        dixit = dixitRepository.save(dixit);
+        mayPublishEvents(dixit);
     }
 
     private void validateStoryteller(Dixit dixit, String playerId) {
@@ -39,18 +40,20 @@ public class TellStoryUseCase extends AbstractDixitUseCase {
     }
 
     // TODO: 發佈事件 回合玩家打牌
-    private void publishEvents(Dixit dixit) {
+    private void mayPublishEvents(Dixit dixit) {
 
     }
 
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class Request {
-        public String gameId;
+    public static class Request extends AbstractDixitUseCase.Request {
         public String phrase;
-        public String playerId;
-        public int cardId;
+
+        public Request(String gameId, int round, String phrase, String playerId, int cardId) {
+            super(gameId, round, playerId, cardId);
+            this.phrase = phrase;
+        }
     }
 
 }

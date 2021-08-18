@@ -109,7 +109,7 @@ public class Dixit {
     }
 
     public void withdrawCards() {
-        getCurrentRound().getCards().forEach(deck::addFirst);
+        getCurrentRound().withdrawCards().forEach(deck::addFirst);
     }
 
     public Player getCurrentStoryteller() {
@@ -118,6 +118,10 @@ public class Dixit {
 
     public List<Player> getCurrentGuessers() {
         return getCurrentRound().getGuessers();
+    }
+
+    public PlayCard getPlayCardByCardId(int cardId) {
+        return getCurrentRound().getPlayCardByCardId(cardId);
     }
 
     public Round getCurrentRound() {
