@@ -3,6 +3,7 @@ package tw.wally.dixit.model;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import tw.wally.dixit.exceptions.InvalidGameOperationException;
+import tw.wally.dixit.exceptions.NotFoundException;
 
 import java.util.*;
 
@@ -41,7 +42,7 @@ public class Player {
 
     public Card playCard(int cardId) {
         if (!handCards.containsKey(cardId)) {
-            throw new InvalidGameOperationException(format("CardId: %d does not exist", cardId));
+            throw new NotFoundException(format("CardId: %d does not exist", cardId));
         }
         return handCards.remove(cardId);
     }

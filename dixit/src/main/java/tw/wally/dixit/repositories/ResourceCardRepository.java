@@ -1,5 +1,6 @@
 package tw.wally.dixit.repositories;
 
+import tw.wally.dixit.exceptions.NotFoundException;
 import tw.wally.dixit.model.Card;
 
 import javax.inject.Named;
@@ -13,6 +14,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import static java.lang.String.format;
 import static java.nio.file.Files.walk;
 import static java.nio.file.Paths.get;
 import static java.util.Base64.getEncoder;
@@ -37,7 +39,7 @@ public class ResourceCardRepository implements CardRepository {
         try {
             var resource = getClass().getResource(path);
             if (resource == null) {
-                throw new RuntimeException("");
+                throw new NotFoundException(format("Resource not found from path %s", path));
             }
             var images = walk(get(resource.toURI()))
                     .filter(Files::isRegularFile)
@@ -45,11 +47,11 @@ public class ResourceCardRepository implements CardRepository {
                     .map(this::toImage)
                     .collect(toSet());
             if (images.isEmpty()) {
-                throw new RuntimeException("");
+                throw new NotFoundException(format("Resource not found from path %s", path));
             }
             return images;
         } catch (IOException | URISyntaxException e) {
-            throw new RuntimeException(e);
+            throw new NotFoundException(e);
         }
     }
 
@@ -58,7 +60,7 @@ public class ResourceCardRepository implements CardRepository {
             var bytes = getEncoder().encode(inputStream.readAllBytes());
             return new String(bytes);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new NotFoundException(e);
         }
     }
 
