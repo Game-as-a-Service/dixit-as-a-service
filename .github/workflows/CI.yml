@@ -30,8 +30,9 @@ jobs:
         with:
           java-version: '15'
           distribution: 'adopt'
-          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
       - name: Run the Maven test phase
+        env:
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
         run: mvn --batch-mode --update-snapshots test
         
       
