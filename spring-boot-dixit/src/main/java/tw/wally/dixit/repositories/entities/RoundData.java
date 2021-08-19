@@ -30,8 +30,8 @@ public class RoundData {
         var roundData = RoundData.builder()
                 .storyteller(PlayerData.toData(round.getStoryteller()))
                 .guessers(mapToList(round.getGuessers(), PlayerData::toData))
-                .playCards(mapToList(round.getPlayCards().values(), PlayCardData::toData))
-                .guesses(mapToList(round.getGuesses().values(), GuessData::toData))
+                .playCards(mapToList(round.getPlayCards(), PlayCardData::toData))
+                .guesses(mapToList(round.getGuesses(), GuessData::toData))
                 .numberOfGuessers(round.getNumberOfGuessers())
                 .roundState(round.getRoundState());
         var story = round.getStory();

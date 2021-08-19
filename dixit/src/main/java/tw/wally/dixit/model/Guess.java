@@ -22,4 +22,8 @@ public class Guess {
             throw new InvalidGameOperationException("Guesser can't guess self card");
         }
     }
+
+    public Card getCard() {
+        return playCard.getCard();
+    }
 }

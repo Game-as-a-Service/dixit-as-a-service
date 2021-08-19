@@ -13,8 +13,8 @@ import java.util.List;
 
 import static java.lang.String.format;
 import static java.util.Collections.shuffle;
-import static tw.wally.dixit.utils.StreamUtils.filter;
-import static tw.wally.dixit.utils.StreamUtils.generate;
+import static java.util.List.copyOf;
+import static tw.wally.dixit.utils.StreamUtils.*;
 
 /**
  * @author - wally55077@gmail.com
@@ -118,6 +118,18 @@ public class Dixit {
 
     public List<Player> getCurrentGuessers() {
         return getCurrentRound().getGuessers();
+    }
+
+    public List<Player> getCurrentGuessersWhoPlayedCard() {
+        return getCurrentRound().getGuessersWhoPlayedCard();
+    }
+
+    public List<Player> getCurrentGuessersWhoGuessed() {
+        return getCurrentRound().getGuessersWhoGuessed();
+    }
+
+    public List<PlayCard> getCurrentPlayCards() {
+        return getCurrentRound().getPlayCards();
     }
 
     public PlayCard getPlayCardByCardId(int cardId) {

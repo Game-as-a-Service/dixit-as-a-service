@@ -14,12 +14,13 @@ import tw.wally.dixit.usecases.CreateDixitUseCase;
 import tw.wally.dixit.usecases.GuessStoryUseCase;
 import tw.wally.dixit.usecases.PlayCardUseCase;
 import tw.wally.dixit.usecases.TellStoryUseCase;
+import tw.wally.dixit.utils.StreamUtils;
 
 import java.util.Collection;
-import java.util.Map;
+import java.util.List;
 import java.util.Random;
+import java.util.function.Function;
 
-import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -231,45 +232,30 @@ public class DixitControllerTest extends AbstractSpringBootTest {
 
     private Card getGuessedCard(Player gamer) {
         return dixitRepository.findDixitById(DIXIT_ID)
-                .map(Dixit::getCurrentRound)
-                .map(Round::getPlayCards)
-                .map(Map::values)
-                .map(Collection::stream)
-                .orElseThrow()
-                .filter(playCard -> !playCard.getPlayer().equals(gamer))
+                .map(Dixit::getCurrentPlayCards)
+                .flatMap(playCards -> findFirst(playCards, playCard -> !playCard.getPlayer().equals(gamer)))
                 .map(PlayCard::getCard)
-                .findFirst().orElseThrow();
+                .orElseThrow();
     }
 
     private void assertStorytellerTellStory(Player expectedStoryteller) {
         var actualStoryteller = dixitRepository.findDixitById(DIXIT_ID)
-                .map(Dixit::getCurrentRound)
-                .map(Round::getStory)
-                .map(Story::getPlayer).orElseThrow();
+                .map(Dixit::getCurrentStoryteller)
+                .orElseThrow();
         assertEquals(expectedStoryteller, actualStoryteller);
     }
 
     private void assertEachGamerPlayCard(Collection<Player> expectedGamers) {
         var actualGamers = dixitRepository.findDixitById(DIXIT_ID)
-                .map(Dixit::getCurrentRound)
-                .map(Round::getPlayCards)
-                .map(Map::values)
-                .map(Collection::stream)
-                .orElseThrow()
-                .map(PlayCard::getPlayer)
-                .collect(toList());
+                .map(Dixit::getCurrentGuessersWhoPlayedCard)
+                .orElseThrow();
         assertEqualsIgnoreOrder(expectedGamers, actualGamers);
     }
 
     private void assertEachGuesserGuessStory(Collection<Player> expectedGamers) {
         var actualGamers = dixitRepository.findDixitById(DIXIT_ID)
-                .map(Dixit::getCurrentRound)
-                .map(Round::getGuesses)
-                .map(Map::values)
-                .map(Collection::stream)
-                .orElseThrow()
-                .map(Guess::getGuesser)
-                .collect(toList());
+                .map(Dixit::getCurrentGuessersWhoGuessed)
+                .orElseThrow();
         assertEqualsIgnoreOrder(expectedGamers, actualGamers);
     }
 }

@@ -142,7 +142,7 @@ public class Round {
             return story.getPlayCard();
         }
         if (!playCards.containsKey(cardId)) {
-            throw new NotFoundException(format("CardId: %d does not exist", cardId));
+            throw new NotFoundException(format("Card: %d does not found", cardId));
         }
         return playCards.get(cardId);
     }
@@ -157,11 +157,19 @@ public class Round {
         return mapToList(playCards, PlayCard::getCard);
     }
 
-    public Player getStoryteller() {
-        return storyteller;
+    public List<Player> getGuessersWhoPlayedCard() {
+        return mapToList(getPlayCards(), PlayCard::getPlayer);
     }
 
-    public List<Player> getGuessers() {
-        return guessers;
+    public List<Player> getGuessersWhoGuessed() {
+        return mapToList(getGuesses(), Guess::getGuesser);
+    }
+
+    public List<PlayCard> getPlayCards() {
+        return copyOf(playCards.values());
+    }
+
+    public List<Guess> getGuesses() {
+        return copyOf(guesses.values());
     }
 }
