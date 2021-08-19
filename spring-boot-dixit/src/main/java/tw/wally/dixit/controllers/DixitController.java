@@ -8,8 +8,6 @@ import tw.wally.dixit.usecases.GuessStoryUseCase;
 import tw.wally.dixit.usecases.PlayCardUseCase;
 import tw.wally.dixit.usecases.TellStoryUseCase;
 
-import java.util.function.Consumer;
-
 /**
  * @author - wally55077@gmail.com
  */
@@ -29,30 +27,36 @@ public class DixitController {
         createDixitUseCase.execute(request);
     }
 
-    @PutMapping("/{dixitId}/rounds/{round}/story")
+    @PutMapping("/{dixitId}/rounds/{round}/players/{playerId}/story")
     public void tellStory(@PathVariable String dixitId,
                           @PathVariable int round,
+                          @PathVariable String playerId,
                           @RequestBody TellStoryUseCase.Request request) {
         request.gameId = dixitId;
         request.round = round;
+        request.playerId = playerId;
         tellStoryUseCase.execute(request);
     }
 
-    @PutMapping("/{dixitId}/rounds/{round}/playcard")
+    @PutMapping("/{dixitId}/rounds/{round}/players/{playerId}/playcard")
     public void playcard(@PathVariable String dixitId,
                          @PathVariable int round,
+                         @PathVariable String playerId,
                          @RequestBody PlayCardUseCase.Request request) {
         request.gameId = dixitId;
         request.round = round;
+        request.playerId = playerId;
         playCardUseCase.execute(request);
     }
 
-    @PutMapping("/{dixitId}/rounds/{round}/guess")
+    @PutMapping("/{dixitId}/rounds/{round}/players/{playerId}/guess")
     public void guessStory(@PathVariable String dixitId,
                            @PathVariable int round,
+                           @PathVariable String playerId,
                            @RequestBody GuessStoryUseCase.Request request) {
         request.gameId = dixitId;
         request.round = round;
+        request.playerId = playerId;
         guessStoryUseCase.execute(request);
     }
 }

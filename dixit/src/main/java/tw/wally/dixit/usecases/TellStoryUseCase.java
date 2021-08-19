@@ -50,8 +50,8 @@ public class TellStoryUseCase extends AbstractDixitUseCase {
     public static class Request extends AbstractDixitUseCase.Request {
         public String phrase;
 
-        public Request(String gameId, int round, String phrase, String playerId, int cardId) {
-            super(gameId, round, playerId, cardId);
+        public Request(String gameId, int round, String phrase, int cardId) {
+            super(gameId, round, cardId);
             this.phrase = phrase;
         }
     }
