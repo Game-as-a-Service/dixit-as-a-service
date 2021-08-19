@@ -24,14 +24,13 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-        with:
-          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
 
       # Runs a single command using the runners shell
       - uses: actions/setup-java@v2
         with:
           java-version: '15'
           distribution: 'adopt'
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
       - name: Run the Maven test phase
         run: mvn --batch-mode --update-snapshots test
         
