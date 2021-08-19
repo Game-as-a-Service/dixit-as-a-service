@@ -34,3 +34,4 @@ build/
 
 ### SpringBoot-Dixit ###
 spring-boot-dixit/src/main/resources/application.yml
+.env
