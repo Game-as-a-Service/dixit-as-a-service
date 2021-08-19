@@ -198,24 +198,27 @@ public class DixitControllerTest extends AbstractSpringBootTest {
 
     private ResultActions tellStory(int numberOfRounds, Player gamer) throws Exception {
         var handCard = getPlayedCard(gamer);
-        var request = new TellStoryUseCase.Request(DIXIT_ID, numberOfRounds, PHRASE, gamer.getId(), handCard.getId());
-        return mockMvc.perform(put(API_PREFIX + "/{dixitId}/rounds/{round}/story", DIXIT_ID, numberOfRounds)
+        var playerId = gamer.getId();
+        var request = new TellStoryUseCase.Request(DIXIT_ID, numberOfRounds, PHRASE, handCard.getId());
+        return mockMvc.perform(put(API_PREFIX + "/{dixitId}/rounds/{round}/players/{playerId}/story", DIXIT_ID, numberOfRounds, playerId)
                 .contentType(APPLICATION_JSON)
                 .content(toJson(request)));
     }
 
     private ResultActions playCard(int numberOfRounds, Player gamer) throws Exception {
         var handCard = getPlayedCard(gamer);
-        var request = new PlayCardUseCase.Request(DIXIT_ID, numberOfRounds, gamer.getId(), handCard.getId());
-        return mockMvc.perform(put(API_PREFIX + "/{dixitId}/rounds/{round}/playcard", DIXIT_ID, numberOfRounds)
+        var playerId = gamer.getId();
+        var request = new PlayCardUseCase.Request(DIXIT_ID, numberOfRounds, handCard.getId());
+        return mockMvc.perform(put(API_PREFIX + "/{dixitId}/rounds/{round}/players/{playerId}/playcard", DIXIT_ID, numberOfRounds, playerId)
                 .contentType(APPLICATION_JSON)
                 .content(toJson(request)));
     }
 
     private ResultActions guessStory(int numberOfRounds, Player gamer) throws Exception {
         var guessCard = getGuessedCard(gamer);
-        var request = new GuessStoryUseCase.Request(DIXIT_ID, numberOfRounds, gamer.getId(), guessCard.getId());
-        return mockMvc.perform(put(API_PREFIX + "/{dixitId}/rounds/{round}/guess", DIXIT_ID, numberOfRounds)
+        var playerId = gamer.getId();
+        var request = new GuessStoryUseCase.Request(DIXIT_ID, numberOfRounds, guessCard.getId());
+        return mockMvc.perform(put(API_PREFIX + "/{dixitId}/rounds/{round}/players/{playerId}/guess", DIXIT_ID, numberOfRounds, playerId)
                 .contentType(APPLICATION_JSON)
                 .content(toJson(request)));
     }

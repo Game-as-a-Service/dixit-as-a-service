@@ -1,4 +1,2 @@
-
-
 jwt:
-  secret: GameAsAServiceDixitNoSecretAndItCreatedByWally
+  secret: ${JWT_SECRET_KEY:PLACEHOLDER}

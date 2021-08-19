@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import tw.wally.dixit.exceptions.InvalidGameOperationException;
 import tw.wally.dixit.exceptions.InvalidGameStateException;
+import tw.wally.dixit.exceptions.NotFoundException;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -139,6 +140,9 @@ public class Round {
     public PlayCard getPlayCardByCardId(int cardId) {
         if (story.getCardId() == cardId) {
             return story.getPlayCard();
+        }
+        if (!playCards.containsKey(cardId)) {
+            throw new NotFoundException(format("CardId: %d does not exist", cardId));
         }
         return playCards.get(cardId);
     }

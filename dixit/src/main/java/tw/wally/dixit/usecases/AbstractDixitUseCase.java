@@ -30,12 +30,17 @@ public abstract class AbstractDixitUseCase {
 
     @Getter
     @NoArgsConstructor
-    @AllArgsConstructor
     public static class Request {
         public String gameId;
         public int round;
         public String playerId;
         public int cardId;
+
+        public Request(String gameId, int round, int cardId) {
+            this.gameId = gameId;
+            this.round = round;
+            this.cardId = cardId;
+        }
     }
 
 }
