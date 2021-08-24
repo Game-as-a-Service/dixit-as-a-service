@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import tw.wally.dixit.exceptions.InvalidGameOperationException;
 import tw.wally.dixit.exceptions.InvalidGameStateException;
+import tw.wally.dixit.exceptions.NotFoundException;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,7 +14,6 @@ import java.util.List;
 
 import static java.lang.String.format;
 import static java.util.Collections.shuffle;
-import static java.util.List.copyOf;
 import static tw.wally.dixit.utils.StreamUtils.*;
 
 /**
@@ -82,7 +82,7 @@ public class Dixit {
     private void startNewRound() {
         shuffle(deck);
         currentStoryTellerPosition++;
-        var storyteller = players.get(currentStoryTellerPosition % players.size());
+        Player storyteller = players.get(currentStoryTellerPosition % players.size());
         var guessers = filter(players, player -> player != storyteller);
         rounds.add(new Round(storyteller, guessers));
     }
@@ -132,7 +132,12 @@ public class Dixit {
         return getCurrentRound().getPlayCards();
     }
 
-    public PlayCard getPlayCardByCardId(int cardId) {
+    public Player getPlayer(String playerId) {
+        return findFirst(players, player -> playerId.equals(player.getId()))
+                .orElseThrow(() -> new NotFoundException(format("Player: %s not found", playerId)));
+    }
+
+    public PlayCard getPlayCard(int cardId) {
         return getCurrentRound().getPlayCardByCardId(cardId);
     }
 

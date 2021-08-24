@@ -59,4 +59,5 @@ public class DixitController {
         request.playerId = playerId;
         guessStoryUseCase.execute(request);
     }
+
 }

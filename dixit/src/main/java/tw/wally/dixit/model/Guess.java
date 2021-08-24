@@ -23,6 +23,10 @@ public class Guess {
         }
     }
 
+    public Player getPlayerWhoPlayedCard() {
+        return playCard.getPlayer();
+    }
+
     public Card getCard() {
         return playCard.getCard();
     }

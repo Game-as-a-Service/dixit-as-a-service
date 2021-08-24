@@ -1,0 +1,13 @@
+spring:
+  data:
+    mongodb:
+      authentication-database: admin
+      uri: ${dixit.mongodb.uri}
+jwt:
+  secret: ${dixit.jwt.secret}
+
+dixit:
+  mongodb:
+    uri: ${MONGO_URI:PLACEHOLDER}
+  jwt:
+    secret: ${JWT_SECRET_KEY:PLACEHOLDER}

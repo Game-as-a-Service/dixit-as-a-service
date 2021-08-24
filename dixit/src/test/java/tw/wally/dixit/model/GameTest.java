@@ -135,26 +135,26 @@ public class GameTest extends AbstractDixitTest {
     }
 
     private void tellStory() {
-        var player = dixit.getCurrentStoryteller();
-        var card = getRandomCard(player);
+        Player player = dixit.getCurrentStoryteller();
+        Card card = getRandomCard(player);
         dixit.tellStory(FAKE_PHRASE, player, card);
         cardOfPlayers.put(player, card);
     }
 
     private void playCard(Player player) {
-        var card = getRandomCard(player);
+        Card card = getRandomCard(player);
         dixit.playCard(player, card);
     }
 
     private Card getRandomCard(Player player) {
         var handCards = player.getHandCards();
-        var card = handCards.get(new Random().nextInt(handCards.size()));
+        Card card = handCards.get(new Random().nextInt(handCards.size()));
         return player.playCard(card.getId());
     }
 
     private void guessStory(Player guesser, Player playerWhoBeGuessed) {
         int cardId = cardOfPlayers.get(playerWhoBeGuessed).getId();
-        var playCard = dixit.getCurrentRound().getPlayCardByCardId(cardId);
+        PlayCard playCard = dixit.getCurrentRound().getPlayCardByCardId(cardId);
         dixit.guessStory(guesser, playCard);
     }
 
@@ -164,7 +164,7 @@ public class GameTest extends AbstractDixitTest {
 
     private void makePlayersAchieveWinningScore(Collection<Player> players) {
         int scoreTimes = DEFAULT_WINNING_SCORE / GUESS_CORRECTLY_SCORE;
-        for (var player : players) {
+        for (Player player : players) {
             for (int currentTime = 0; currentTime < scoreTimes; currentTime++) {
                 player.addScore(GUESS_CORRECTLY_SCORE);
             }

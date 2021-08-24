@@ -24,14 +24,19 @@ public class CreateDixitUseCase {
     private final CardRepository cardRepository;
 
     public void execute(Request request) {
-        var cards = cardRepository.findAll();
-        var game = request.game;
-        var dixit = new Dixit(game.id, game.gameSetting.toVictoryCondition(), cards);
-        dixit.join(game.host.toPlayer());
-        mapToList(game.players, Gamer::toPlayer).forEach(dixit::join);
+        Dixit dixit = dixit(request);
         dixit.start();
         dixit = dixitRepository.save(dixit);
         mayPublishEvents(dixit);
+    }
+
+    public Dixit dixit(Request request) {
+        var cards = cardRepository.findAll();
+        var game = request.game;
+        Dixit dixit = new Dixit(game.id, game.gameSetting.toVictoryCondition(), cards);
+        dixit.join(game.host.toPlayer());
+        mapToList(game.players, Gamer::toPlayer).forEach(dixit::join);
+        return dixit;
     }
 
     // TODO: 發佈事件 開始遊戲、遊戲發牌、、新回合說故事

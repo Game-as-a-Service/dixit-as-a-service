@@ -31,13 +31,21 @@ public class Player {
         this.handCards = new HashMap<>(NUMBER_OF_PLAYER_HAND_CARDS);
     }
 
+    public void addHandCard(Card card) {
+        int numberOfHandCards = handCards.size();
+        if (numberOfHandCards >= NUMBER_OF_PLAYER_HAND_CARDS) {
+            throw new InvalidGameOperationException(format("Number of hand cards can not higher than %d.", NUMBER_OF_PLAYER_HAND_CARDS));
+        }
+        handCards.put(card.getId(), card);
+    }
+
     public void addHandCards(Collection<Card> cards) {
         int numberOfCards = cards.size();
         if (numberOfCards != NUMBER_OF_DEALT_CARD
                 && numberOfCards != NUMBER_OF_PLAYER_HAND_CARDS) {
             throw new InvalidGameOperationException(format("Number of cards should be %d or %d.", NUMBER_OF_DEALT_CARD, NUMBER_OF_PLAYER_HAND_CARDS));
         }
-        cards.forEach(card -> handCards.put(card.getId(), card));
+        cards.forEach(this::addHandCard);
     }
 
     public Card playCard(int cardId) {

@@ -32,6 +32,7 @@ jobs:
           distribution: 'adopt'
       - name: Run the Maven test phase
         env:
+          MONGO_URI: ${{ secrets.MONGO_URI }}
           JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
         run: mvn --batch-mode --update-snapshots test
         

@@ -78,7 +78,7 @@ public class PlayerTest extends AbstractDixitTest {
 
     private void playRandomCard() {
         var handCards = player.getHandCards();
-        var card = handCards.get(new Random().nextInt(player.getHandCards().size()));
+        Card card = handCards.get(new Random().nextInt(player.getHandCards().size()));
         player.playCard(card.getId());
     }
 }

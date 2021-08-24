@@ -1,13 +1,11 @@
 package tw.wally.dixit.usecases;
 
-import tw.wally.dixit.exceptions.InvalidGameOperationException;
 import tw.wally.dixit.model.Dixit;
+import tw.wally.dixit.model.PlayCard;
+import tw.wally.dixit.model.Player;
 import tw.wally.dixit.repositories.DixitRepository;
 
 import javax.inject.Named;
-
-import static java.lang.String.format;
-import static tw.wally.dixit.utils.StreamUtils.findFirst;
 
 /**
  * @author - wally55077@gmail.com
@@ -19,15 +17,17 @@ public class GuessStoryUseCase extends AbstractDixitUseCase {
     }
 
     public void execute(Request request) {
-        var dixit = findDixit(request.gameId);
+        Dixit dixit = findDixit(request.gameId);
         validateRound(dixit, request.round);
-        var playerId = request.playerId;
-        var guesser = findFirst(dixit.getCurrentGuessers(), player -> playerId.equals(player.getId()))
-                .orElseThrow(() -> new InvalidGameOperationException(format("Player: %s is not guesser", playerId)));
-        var playCard = dixit.getPlayCardByCardId(request.cardId);
-        dixit.guessStory(guesser, playCard);
+        guessStory(request, dixit);
         dixit = dixitRepository.save(dixit);
         mayPublishEvents(dixit);
+    }
+
+    private void guessStory(Request request, Dixit dixit) {
+        Player guesser = dixit.getPlayer(request.playerId);
+        PlayCard playCard = dixit.getPlayCard(request.cardId);
+        dixit.guessStory(guesser, playCard);
     }
 
     // TODO: 發佈事件 回合玩家結算
