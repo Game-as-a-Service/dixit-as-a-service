@@ -35,13 +35,14 @@ public class CreateDixitUseCase {
     public Dixit dixit(Request request) {
         var cards = cardRepository.findAll();
         var game = request.game;
-        Dixit dixit = new Dixit(game.id, game.gameSetting.toVictoryCondition(), cards);
-        dixit.join(game.host.toPlayer());
-        return dixit;
+        return new Dixit(game.id, game.gameSetting.toVictoryCondition(), cards);
     }
 
     public Collection<tw.wally.dixit.model.Player> players(Request request) {
-        return mapToList(request.game.players, Player::toPlayer);
+        var game = request.game;
+        var players = mapToList(game.players, Player::toPlayer);
+        players.add(game.host.toPlayer());
+        return players;
     }
 
     // TODO: 發佈事件 開始遊戲、遊戲發牌、、新回合說故事
