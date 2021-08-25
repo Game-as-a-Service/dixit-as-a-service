@@ -19,7 +19,9 @@ public class GuessStoryUseCase extends AbstractDixitUseCase {
     public void execute(Request request) {
         Dixit dixit = findDixit(request.gameId);
         validateRound(dixit, request.round);
+
         guessStory(request, dixit);
+
         dixit = dixitRepository.save(dixit);
         mayPublishEvents(dixit);
     }

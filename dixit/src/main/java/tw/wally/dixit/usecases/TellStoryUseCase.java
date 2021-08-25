@@ -23,7 +23,9 @@ public class TellStoryUseCase extends AbstractDixitUseCase {
     public void execute(Request request) {
         Dixit dixit = findDixit(request.gameId);
         validateRound(dixit, request.round);
+
         tellStory(request, dixit);
+
         dixit = dixitRepository.save(dixit);
         mayPublishEvents(dixit);
     }

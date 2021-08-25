@@ -202,11 +202,11 @@ public class DixitControllerTest extends AbstractSpringBootTest {
     }
 
     private ResultActions createDixitWithGamers(int numberOfGamers) throws Exception {
-        var gamers = generate(numberOfGamers, number -> new CreateDixitUseCase.Gamer("id:" + number, DIXIT_GAMER + number));
-        var host = gamers.get(0);
-        var players = skip(gamers, 1);
+        var players = generate(numberOfGamers, number -> new CreateDixitUseCase.Player("id:" + number, DIXIT_GAMER + number));
+        var dixitHost = players.get(0);
+        var dixitPlayers = skip(players, 1);
         var gameSetting = new CreateDixitUseCase.GameSetting(30);
-        var game = new CreateDixitUseCase.Game(DIXIT_ID, host, players, gameSetting);
+        var game = new CreateDixitUseCase.Game(DIXIT_ID, dixitHost, dixitPlayers, gameSetting);
         var request = new CreateDixitUseCase.Request(ROOM_ID, game);
         return mockMvc.perform(post(API_PREFIX)
                 .contentType(APPLICATION_JSON)

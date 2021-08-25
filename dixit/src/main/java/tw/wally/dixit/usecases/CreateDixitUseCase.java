@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import tw.wally.dixit.model.Dixit;
-import tw.wally.dixit.model.Player;
 import tw.wally.dixit.model.VictoryCondition;
 import tw.wally.dixit.repositories.CardRepository;
 import tw.wally.dixit.repositories.DixitRepository;
@@ -25,7 +24,10 @@ public class CreateDixitUseCase {
 
     public void execute(Request request) {
         Dixit dixit = dixit(request);
+
+        players(request).forEach(dixit::join);
         dixit.start();
+
         dixit = dixitRepository.save(dixit);
         mayPublishEvents(dixit);
     }
@@ -35,8 +37,11 @@ public class CreateDixitUseCase {
         var game = request.game;
         Dixit dixit = new Dixit(game.id, game.gameSetting.toVictoryCondition(), cards);
         dixit.join(game.host.toPlayer());
-        mapToList(game.players, Gamer::toPlayer).forEach(dixit::join);
         return dixit;
+    }
+
+    public Collection<tw.wally.dixit.model.Player> players(Request request) {
+        return mapToList(request.game.players, Player::toPlayer);
     }
 
     // TODO: 發佈事件 開始遊戲、遊戲發牌、、新回合說故事
@@ -57,20 +62,20 @@ public class CreateDixitUseCase {
     @AllArgsConstructor
     public static class Game {
         public String id;
-        public Gamer host;
-        public Collection<Gamer> players;
+        public Player host;
+        public Collection<Player> players;
         public GameSetting gameSetting;
     }
 
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class Gamer {
+    public static class Player {
         public String id;
         public String name;
 
-        private Player toPlayer() {
-            return new Player(id, name);
+        private tw.wally.dixit.model.Player toPlayer() {
+            return new tw.wally.dixit.model.Player(id, name);
         }
     }
 

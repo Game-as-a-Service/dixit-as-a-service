@@ -22,7 +22,9 @@ public class PlayCardUseCase extends AbstractDixitUseCase {
     public void execute(Request request) {
         Dixit dixit = findDixit(request.gameId);
         validateRound(dixit, request.round);
+
         playCard(request, dixit);
+
         dixit = dixitRepository.save(dixit);
         mayPublishEvents(dixit);
     }
