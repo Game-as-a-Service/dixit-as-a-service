@@ -12,7 +12,7 @@ import static java.util.List.of;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static tw.wally.dixit.model.Dixit.NUMBER_OF_PLAYER_HAND_CARDS;
-import static tw.wally.dixit.model.GameTest.DEFAULT_CARD_SIZE;
+import static tw.wally.dixit.model.DixitTest.DEFAULT_CARD_SIZE;
 import static tw.wally.dixit.utils.StreamUtils.generate;
 import static tw.wally.dixit.utils.StreamUtils.skip;
 
