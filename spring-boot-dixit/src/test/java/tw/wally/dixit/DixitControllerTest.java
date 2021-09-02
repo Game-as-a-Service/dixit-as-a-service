@@ -7,10 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.ResultActions;
-import tw.wally.dixit.model.Card;
-import tw.wally.dixit.model.Dixit;
-import tw.wally.dixit.model.PlayCard;
-import tw.wally.dixit.model.Player;
+import tw.wally.dixit.model.*;
 import tw.wally.dixit.repositories.CardRepository;
 import tw.wally.dixit.repositories.DixitRepository;
 import tw.wally.dixit.services.TokenService;
@@ -34,8 +31,9 @@ public class DixitControllerTest extends AbstractSpringBootTest {
     protected static final String API_PREFIX = "/api/dixit";
     private static final String ROOM_ID = "roomId";
     private static final String DIXIT_ID = "dixitId";
-    private static final String DIXIT_GAMER = "dixitGamer";
+    private static final String DIXIT_PLAYER = "dixitPlayer";
     private static final String PHRASE = "phrase";
+    private static final int FIRST_ROUND = 1, SECOND_ROUND = 2;
 
     @Autowired
     private DixitRepository dixitRepository;
@@ -57,34 +55,34 @@ public class DixitControllerTest extends AbstractSpringBootTest {
     }
 
     @Test
-    public void WhenCreateDixitWithFourGamers_ThenShouldSuccess() throws Exception {
-        createDixitWithGamers(4)
+    public void WhenCreateDixitWithFourPlayers_ThenShouldSuccess() throws Exception {
+        createDixitWithPlayers(4)
                 .andExpect(status().isOk());
 
         assertTrue(dixitRepository.findDixitById(DIXIT_ID).isPresent());
     }
 
     @Test
-    public void WhenCreateDixitWithEightGamers_ThenShouldFail() throws Exception {
-        createDixitWithGamers(8)
+    public void WhenCreateDixitWithEightPlayers_ThenShouldRespondBadRequest() throws Exception {
+        createDixitWithPlayers(8)
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     public void GivenDixitStarted_WhenStorytellerTellStory_ThenCurrentRoundShouldHaveStory() throws Exception {
-        Dixit dixit = createDixitWithGamersAndGet(6);
+        Dixit dixit = createDixitWithPlayersAndGet(6);
         assertNull(dixit.getCurrentRound().getStory());
 
         var storyteller = dixit.getCurrentStoryteller();
         tellStory(dixit.getNumberOfRounds(), storyteller)
                 .andExpect(status().isOk());
 
-        assertStorytellerTellStory(storyteller);
+        assertCurrentRoundHasStoryWhichToldByStoryteller(storyteller);
     }
 
     @Test
-    public void GivenDixitStarted_WhenGuesserTellStory_ThenShouldFail() throws Exception {
-        Dixit dixit = createDixitWithGamersAndGet(5);
+    public void GivenDixitStarted_WhenGuesserTellStory_ThenShouldRespondBadRequest() throws Exception {
+        Dixit dixit = createDixitWithPlayersAndGet(5);
         assertNull(dixit.getCurrentRound().getStory());
 
         Player guesser = dixit.getCurrentGuessers().get(0);
@@ -93,12 +91,12 @@ public class DixitControllerTest extends AbstractSpringBootTest {
     }
 
     @Test
-    public void GivenDixitStartedAndFirstRoundStarted_WhenStorytellerTellStoryAtSecondRound_ThenShouldFail() throws Exception {
-        Dixit dixit = createDixitWithGamersAndGet(6);
-        assertEquals(1, dixit.getNumberOfRounds());
+    public void GivenDixitStartedInFirstRound_WhenStorytellerTellsStoryInSecondRound_ThenShouldRespondBadRequest() throws Exception {
+        Dixit dixit = createDixitWithPlayersAndGet(6);
+        assertEquals(FIRST_ROUND, dixit.getNumberOfRounds());
 
         Player storyteller = dixit.getCurrentStoryteller();
-        tellStory(2, storyteller)
+        tellStory(SECOND_ROUND, storyteller)
                 .andExpect(status().isBadRequest());
     }
 
@@ -106,103 +104,103 @@ public class DixitControllerTest extends AbstractSpringBootTest {
     public void GivenStoryTold_WhenTwoGuessersPlayCard_ThenCurrentRoundShouldHaveTwoPlayCards() throws Exception {
         Dixit dixit = givenStoryToldAndGetDixit();
 
-        int numberOfRounds = dixit.getNumberOfRounds();
+        int currentRound = dixit.getNumberOfRounds();
         var guessers = limit(dixit.getCurrentGuessers(), 2);
-        eachGuesserPlayCard(numberOfRounds, guessers);
+        eachGuesserPlayCard(currentRound, guessers);
 
-        assertEachGuesserPlayCard(guessers);
+        assertCurrentRoundHasCardsWhichPlayedByGuessers(guessers);
     }
 
     @Test
     public void GivenStoryTold_WhenStorytellerPlayCard_ThenShouldFail() throws Exception {
         Dixit dixit = givenStoryToldAndGetDixit();
 
-        int numberOfRounds = dixit.getNumberOfRounds();
+        int currentRound = dixit.getNumberOfRounds();
         Player storyteller = dixit.getCurrentStoryteller();
-        playCard(numberOfRounds, storyteller)
+        playCard(currentRound, storyteller)
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    public void GivenStoryToldAtFirstRound_WhenOneGuesserPlayCardAtSecondRound_ThenShouldFail() throws Exception {
+    public void GivenStoryToldInFirstRound_WhenOneGuesserPlaysCardInSecondRound_ThenShouldRespondBadRequest() throws Exception {
         Dixit dixit = givenStoryToldAndGetDixit();
-        assertEquals(1, dixit.getNumberOfRounds());
+        assertEquals(FIRST_ROUND, dixit.getNumberOfRounds());
 
         Player guesser = dixit.getCurrentGuessers().get(0);
-        playCard(2, guesser)
+        playCard(SECOND_ROUND, guesser)
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    public void GivenEachGuesserPlayedCard_WhenTwoGuessersGuessStory_ThenCurrentRoundShouldHaveTwoGuesses() throws Exception {
-        Dixit dixit = givenEachGuesserPlayedCardAndGetDixit();
+    public void GiveAllGuessersPlayedCard_WhenTwoGuessersGuessStory_ThenCurrentRoundShouldHaveTwoGuesses() throws Exception {
+        Dixit dixit = givenAllGuessersPlayedCardAndGetDixit();
 
-        int numberOfRounds = dixit.getNumberOfRounds();
+        int currentRound = dixit.getNumberOfRounds();
         var guessers = limit(dixit.getCurrentGuessers(), 2);
-        eachGuesserGuessStory(numberOfRounds, guessers);
+        eachGuesserGuessStory(currentRound, guessers);
 
-        assertEachGuesserGuessStory(guessers);
+        assertCurrentRoundHasGuessesWhichGuessedByGuessers(guessers);
     }
 
     @Test
-    public void GivenEachGuesserPlayedCard_WhenStorytellerGuessStory_ThenShouldFail() throws Exception {
-        Dixit dixit = givenEachGuesserPlayedCardAndGetDixit();
+    public void GiveAllGuessersPlayedCard_WhenStorytellerGuessStory_ThenShouldFail() throws Exception {
+        Dixit dixit = givenAllGuessersPlayedCardAndGetDixit();
 
-        int numberOfRounds = dixit.getNumberOfRounds();
+        int currentRound = dixit.getNumberOfRounds();
         Player storyteller = dixit.getCurrentStoryteller();
-        guessStory(numberOfRounds, storyteller)
+        guessStory(currentRound, storyteller)
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    public void GivenEachGuesserPlayedCardAtFirstRound_WhenOneGuesserGuessStoryAtSecondRound_ThenShouldFail() throws Exception {
-        Dixit dixit = givenEachGuesserPlayedCardAndGetDixit();
-        assertEquals(1, dixit.getNumberOfRounds());
+    public void GivenAllGuessersPlayedCardInFirstRound_WhenOneGuesserGuessStoryInSecondRound_ThenShouldRespondBadRequest() throws Exception {
+        Dixit dixit = givenAllGuessersPlayedCardAndGetDixit();
+        assertEquals(FIRST_ROUND, dixit.getNumberOfRounds());
 
         var guesser = dixit.getCurrentGuessers().get(0);
-        guessStory(2, guesser)
+        guessStory(SECOND_ROUND, guesser)
                 .andExpect(status().isBadRequest());
     }
 
-    private Dixit givenEachGuesserPlayedCardAndGetDixit() throws Exception {
-        Dixit dixit = createDixitWithGamersAndGet(6);
+    private Dixit givenAllGuessersPlayedCardAndGetDixit() throws Exception {
+        Dixit dixit = createDixitWithPlayersAndGet(6);
         tellStory(dixit.getNumberOfRounds(), dixit.getCurrentStoryteller())
                 .andExpect(status().isOk());
-        int numberOfRounds = dixit.getNumberOfRounds();
+        int currentRound = dixit.getNumberOfRounds();
         var guessers = dixit.getCurrentGuessers();
-        eachGuesserPlayCard(numberOfRounds, guessers);
+        eachGuesserPlayCard(currentRound, guessers);
         return dixit;
     }
 
     private Dixit givenStoryToldAndGetDixit() throws Exception {
-        Dixit dixit = createDixitWithGamersAndGet(6);
+        Dixit dixit = createDixitWithPlayersAndGet(6);
         tellStory(dixit.getNumberOfRounds(), dixit.getCurrentStoryteller())
                 .andExpect(status().isOk());
         return dixit;
     }
 
-    private Dixit createDixitWithGamersAndGet(int numberOfGamers) throws Exception {
-        createDixitWithGamers(numberOfGamers)
+    private Dixit createDixitWithPlayersAndGet(int numberOfPlayers) throws Exception {
+        createDixitWithPlayers(numberOfPlayers)
                 .andExpect(status().isOk());
         return dixitRepository.findDixitById(DIXIT_ID).orElseThrow();
     }
 
-    private void eachGuesserPlayCard(int numberOfRounds, Collection<Player> players) throws Exception {
+    private void eachGuesserPlayCard(int currentRound, Collection<Player> players) throws Exception {
         for (Player player : players) {
-            playCard(numberOfRounds, player)
+            playCard(currentRound, player)
                     .andExpect(status().isOk());
         }
     }
 
-    private void eachGuesserGuessStory(int numberOfRounds, Collection<Player> players) throws Exception {
+    private void eachGuesserGuessStory(int currentRound, Collection<Player> players) throws Exception {
         for (Player player : players) {
-            guessStory(numberOfRounds, player)
+            guessStory(currentRound, player)
                     .andExpect(status().isOk());
         }
     }
 
-    private ResultActions createDixitWithGamers(int numberOfGamers) throws Exception {
-        var players = generate(numberOfGamers, number -> new CreateDixitUseCase.Player("id:" + number, DIXIT_GAMER + number));
+    private ResultActions createDixitWithPlayers(int numberOfPlayers) throws Exception {
+        var players = generate(numberOfPlayers, number -> new CreateDixitUseCase.Player("id:" + number, DIXIT_PLAYER + number));
         var dixitHost = players.get(0);
         var dixitPlayers = skip(players, 1);
         var gameSetting = new CreateDixitUseCase.GameSetting(30);
@@ -213,29 +211,29 @@ public class DixitControllerTest extends AbstractSpringBootTest {
                 .content(toJson(request)));
     }
 
-    private ResultActions tellStory(int numberOfRounds, Player player) throws Exception {
+    private ResultActions tellStory(int currentRound, Player player) throws Exception {
         var handCard = getPlayedCard(player);
         var playerId = player.getId();
-        var request = new TellStoryUseCase.Request(DIXIT_ID, numberOfRounds, PHRASE, handCard.getId());
-        return mockMvc.perform(put(API_PREFIX + "/{dixitId}/rounds/{round}/players/{playerId}/story", DIXIT_ID, numberOfRounds, playerId)
+        var request = new TellStoryUseCase.Request(DIXIT_ID, currentRound, PHRASE, handCard.getId());
+        return mockMvc.perform(put(API_PREFIX + "/{dixitId}/rounds/{round}/players/{playerId}/story", DIXIT_ID, currentRound, playerId)
                 .contentType(APPLICATION_JSON)
                 .content(toJson(request)));
     }
 
-    private ResultActions playCard(int numberOfRounds, Player player) throws Exception {
+    private ResultActions playCard(int currentRound, Player player) throws Exception {
         var handCard = getPlayedCard(player);
         var playerId = player.getId();
-        var request = new PlayCardUseCase.Request(DIXIT_ID, numberOfRounds, handCard.getId());
-        return mockMvc.perform(put(API_PREFIX + "/{dixitId}/rounds/{round}/players/{playerId}/playcard", DIXIT_ID, numberOfRounds, playerId)
+        var request = new PlayCardUseCase.Request(DIXIT_ID, currentRound, handCard.getId());
+        return mockMvc.perform(put(API_PREFIX + "/{dixitId}/rounds/{round}/players/{playerId}/playcard", DIXIT_ID, currentRound, playerId)
                 .contentType(APPLICATION_JSON)
                 .content(toJson(request)));
     }
 
-    private ResultActions guessStory(int numberOfRounds, Player player) throws Exception {
+    private ResultActions guessStory(int currentRound, Player player) throws Exception {
         var guessCard = getGuessedCard(player);
         var playerId = player.getId();
-        var request = new GuessStoryUseCase.Request(DIXIT_ID, numberOfRounds, guessCard.getId());
-        return mockMvc.perform(put(API_PREFIX + "/{dixitId}/rounds/{round}/players/{playerId}/guess", DIXIT_ID, numberOfRounds, playerId)
+        var request = new GuessStoryUseCase.Request(DIXIT_ID, currentRound, guessCard.getId());
+        return mockMvc.perform(put(API_PREFIX + "/{dixitId}/rounds/{round}/players/{playerId}/guess", DIXIT_ID, currentRound, playerId)
                 .contentType(APPLICATION_JSON)
                 .content(toJson(request)));
     }
@@ -254,24 +252,31 @@ public class DixitControllerTest extends AbstractSpringBootTest {
                 .orElseThrow();
     }
 
-    private void assertStorytellerTellStory(Player expectedStoryteller) {
-        var actualStoryteller = dixitRepository.findDixitById(DIXIT_ID)
-                .map(Dixit::getCurrentStoryteller)
+    private void assertCurrentRoundHasStoryWhichToldByStoryteller(Player expectedStoryteller) {
+        Story story = dixitRepository.findDixitById(DIXIT_ID)
+                .map(Dixit::getCurrentRound)
+                .map(Round::getStory)
                 .orElseThrow();
+        assertNotNull(story);
+        var actualStoryteller = story.getPlayer();
         assertEquals(expectedStoryteller, actualStoryteller);
     }
 
-    private void assertEachGuesserPlayCard(Collection<Player> expectedGuessers) {
-        var actualGuessers = dixitRepository.findDixitById(DIXIT_ID)
-                .map(Dixit::getCurrentGuessersWhoPlayedCard)
+    private void assertCurrentRoundHasCardsWhichPlayedByGuessers(Collection<Player> expectedGuessers) {
+        var playCards = dixitRepository.findDixitById(DIXIT_ID)
+                .map(Dixit::getCurrentPlayCards)
                 .orElseThrow();
+        assertEquals(playCards.size(), expectedGuessers.size());
+        var actualGuessers = mapToList(playCards, PlayCard::getPlayer);
         assertEqualsIgnoreOrder(expectedGuessers, actualGuessers);
     }
 
-    private void assertEachGuesserGuessStory(Collection<Player> expectedGuessers) {
-        var actualGuessers = dixitRepository.findDixitById(DIXIT_ID)
-                .map(Dixit::getCurrentGuessersWhoGuessed)
+    private void assertCurrentRoundHasGuessesWhichGuessedByGuessers(Collection<Player> expectedGuessers) {
+        var guesses = dixitRepository.findDixitById(DIXIT_ID)
+                .map(Dixit::getCurrentGuesses)
                 .orElseThrow();
+        assertEquals(guesses.size(), expectedGuessers.size());
+        var actualGuessers = mapToList(guesses, Guess::getGuesser);
         assertEqualsIgnoreOrder(expectedGuessers, actualGuessers);
     }
 }

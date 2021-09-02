@@ -178,15 +178,6 @@ public class Round {
         playCards.addFirst(story.getPlayCard());
         return mapToList(playCards, PlayCard::getCard);
     }
-
-    public List<Player> getGuessersWhoPlayedCard() {
-        return mapToList(getPlayCards(), PlayCard::getPlayer);
-    }
-
-    public List<Player> getGuessersWhoGuessed() {
-        return mapToList(getGuesses(), Guess::getGuesser);
-    }
-
     public List<PlayCard> getPlayCards() {
         return copyOf(playCards.values());
     }

@@ -120,16 +120,12 @@ public class Dixit {
         return getCurrentRound().getGuessers();
     }
 
-    public List<Player> getCurrentGuessersWhoPlayedCard() {
-        return getCurrentRound().getGuessersWhoPlayedCard();
-    }
-
-    public List<Player> getCurrentGuessersWhoGuessed() {
-        return getCurrentRound().getGuessersWhoGuessed();
-    }
-
     public List<PlayCard> getCurrentPlayCards() {
         return getCurrentRound().getPlayCards();
+    }
+
+    public List<Guess> getCurrentGuesses() {
+        return getCurrentRound().getGuesses();
     }
 
     public Player getPlayer(String playerId) {
