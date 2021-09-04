@@ -1,0 +1,1 @@
+web: java -Dserver.port=$PORT -jar spring-boot-dixit/target/spring-boot-dixit-2.5.0.jar

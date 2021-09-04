@@ -9,7 +9,7 @@ public class GuessTest extends AbstractDixitTest {
 
     @Test
     public void WhenGuesserGuessesHisCard_ThenShouldFail() {
-        var playCard = new PlayCard(FAKE_PLAYER, FAKE_CARD);
+        PlayCard playCard = new PlayCard(FAKE_PLAYER, FAKE_CARD);
         assertThrows(InvalidGameOperationException.class, () -> new Guess(FAKE_PLAYER, playCard));
     }
 

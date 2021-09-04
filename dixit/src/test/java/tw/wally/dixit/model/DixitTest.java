@@ -15,8 +15,9 @@ import static tw.wally.dixit.model.Dixit.NUMBER_OF_PLAYER_HAND_CARDS;
 import static tw.wally.dixit.model.Round.GUESS_CORRECTLY_SCORE;
 import static tw.wally.dixit.utils.StreamUtils.limit;
 
-public class GameTest extends AbstractDixitTest {
+public class DixitTest extends AbstractDixitTest {
 
+    public static final String DIXIT_ID = "dixitId";
     public static final int DEFAULT_CARD_SIZE = 36;
     public static final int DEFAULT_WINNING_SCORE = 30;
     private Dixit dixit;
@@ -24,7 +25,7 @@ public class GameTest extends AbstractDixitTest {
 
     @BeforeEach
     public void beforeTest() {
-        this.dixit = new Dixit("1", new VictoryCondition(DEFAULT_WINNING_SCORE), generateCards(DEFAULT_CARD_SIZE));
+        this.dixit = new Dixit(DIXIT_ID, new VictoryCondition(DEFAULT_WINNING_SCORE), generateCards(DEFAULT_CARD_SIZE));
         this.cardOfPlayers = new HashMap<>(Dixit.MAX_NUMBER_OF_PLAYERS);
     }
 
@@ -76,7 +77,7 @@ public class GameTest extends AbstractDixitTest {
 
         dixit.withdrawCards();
 
-        int expectedDeckSize = getCurrentDeckSizeAfterDealCard(5) + dixit.getCurrentRound().getCards().size();
+        int expectedDeckSize = getCurrentDeckSizeAfterDealCard(5) + dixit.getCurrentRound().withdrawCards().size();
         int actualDeckSize = dixit.getDeckSize();
         assertEquals(expectedDeckSize, actualDeckSize);
     }
@@ -135,26 +136,26 @@ public class GameTest extends AbstractDixitTest {
     }
 
     private void tellStory() {
-        var player = dixit.getCurrentStoryteller();
-        var card = getRandomCard(player);
+        Player player = dixit.getCurrentStoryteller();
+        Card card = getRandomCard(player);
         dixit.tellStory(FAKE_PHRASE, player, card);
         cardOfPlayers.put(player, card);
     }
 
     private void playCard(Player player) {
-        var card = getRandomCard(player);
+        Card card = getRandomCard(player);
         dixit.playCard(player, card);
     }
 
     private Card getRandomCard(Player player) {
         var handCards = player.getHandCards();
-        var card = handCards.get(new Random().nextInt(handCards.size()));
+        Card card = handCards.get(new Random().nextInt(handCards.size()));
         return player.playCard(card.getId());
     }
 
     private void guessStory(Player guesser, Player playerWhoBeGuessed) {
         int cardId = cardOfPlayers.get(playerWhoBeGuessed).getId();
-        var playCard = dixit.getCurrentRound().getPlayCardByCardId(cardId);
+        PlayCard playCard = dixit.getCurrentRound().getPlayCardByCardId(cardId);
         dixit.guessStory(guesser, playCard);
     }
 
@@ -164,7 +165,7 @@ public class GameTest extends AbstractDixitTest {
 
     private void makePlayersAchieveWinningScore(Collection<Player> players) {
         int scoreTimes = DEFAULT_WINNING_SCORE / GUESS_CORRECTLY_SCORE;
-        for (var player : players) {
+        for (Player player : players) {
             for (int currentTime = 0; currentTime < scoreTimes; currentTime++) {
                 player.addScore(GUESS_CORRECTLY_SCORE);
             }

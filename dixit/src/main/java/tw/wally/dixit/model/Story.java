@@ -30,8 +30,8 @@ public class Story {
         return playCard.getPlayer();
     }
 
-    public PlayCard getPlayCard() {
-        return playCard;
+    public Card getCard() {
+        return playCard.getCard();
     }
 
     public int getCardId() {

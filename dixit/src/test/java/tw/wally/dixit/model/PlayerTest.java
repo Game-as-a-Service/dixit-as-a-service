@@ -3,6 +3,7 @@ package tw.wally.dixit.model;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import tw.wally.dixit.exceptions.InvalidGameOperationException;
+import tw.wally.dixit.exceptions.NotFoundException;
 
 import java.util.Collection;
 import java.util.Random;
@@ -17,7 +18,7 @@ public class PlayerTest extends AbstractDixitTest {
 
     @BeforeEach
     public void beforeTest() {
-        this.player = new Player("1", DIXIT_PLAYER);
+        this.player = new Player(DIXIT_PLAYER + "Id", DIXIT_PLAYER);
     }
 
     @Test
@@ -58,7 +59,7 @@ public class PlayerTest extends AbstractDixitTest {
     public void GivenPlayerHasSixCards_WhenPlayOneCardNotInHisHandCards_ThenShouldFail() {
         dealSixCards();
 
-        assertThrows(InvalidGameOperationException.class, () -> player.playCard(-1));
+        assertThrows(NotFoundException.class, () -> player.playCard(-1));
     }
 
     @Test
@@ -77,7 +78,7 @@ public class PlayerTest extends AbstractDixitTest {
 
     private void playRandomCard() {
         var handCards = player.getHandCards();
-        var card = handCards.get(new Random().nextInt(player.getHandCards().size()));
+        Card card = handCards.get(new Random().nextInt(player.getHandCards().size()));
         player.playCard(card.getId());
     }
 }

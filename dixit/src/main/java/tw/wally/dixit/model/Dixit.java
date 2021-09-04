@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import tw.wally.dixit.exceptions.InvalidGameOperationException;
 import tw.wally.dixit.exceptions.InvalidGameStateException;
+import tw.wally.dixit.exceptions.NotFoundException;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,8 +14,7 @@ import java.util.List;
 
 import static java.lang.String.format;
 import static java.util.Collections.shuffle;
-import static tw.wally.dixit.utils.StreamUtils.filter;
-import static tw.wally.dixit.utils.StreamUtils.generate;
+import static tw.wally.dixit.utils.StreamUtils.*;
 
 /**
  * @author - wally55077@gmail.com
@@ -82,7 +82,7 @@ public class Dixit {
     private void startNewRound() {
         shuffle(deck);
         currentStoryTellerPosition++;
-        var storyteller = players.get(currentStoryTellerPosition % players.size());
+        Player storyteller = players.get(currentStoryTellerPosition % players.size());
         var guessers = filter(players, player -> player != storyteller);
         rounds.add(new Round(storyteller, guessers));
     }
@@ -109,7 +109,7 @@ public class Dixit {
     }
 
     public void withdrawCards() {
-        getCurrentRound().getCards().forEach(deck::addFirst);
+        getCurrentRound().withdrawCards().forEach(deck::addFirst);
     }
 
     public Player getCurrentStoryteller() {
@@ -118,6 +118,23 @@ public class Dixit {
 
     public List<Player> getCurrentGuessers() {
         return getCurrentRound().getGuessers();
+    }
+
+    public List<PlayCard> getCurrentPlayCards() {
+        return getCurrentRound().getPlayCards();
+    }
+
+    public List<Guess> getCurrentGuesses() {
+        return getCurrentRound().getGuesses();
+    }
+
+    public Player getPlayer(String playerId) {
+        return findFirst(players, player -> playerId.equals(player.getId()))
+                .orElseThrow(() -> new NotFoundException(format("Player: %s not found", playerId)));
+    }
+
+    public PlayCard getPlayCard(int cardId) {
+        return getCurrentRound().getPlayCardByCardId(cardId);
     }
 
     public Round getCurrentRound() {
