@@ -26,9 +26,6 @@ public class JacksonConfiguration {
                         PlayerJacksonConfiguration.SERIALIZER})
                 .customize(objectMapperBuilder);
         return objectMapperBuilder.build();
-//        return new ObjectMapper()
-//                .setSerializationInclusion(Include.NON_NULL)
-//                .enable(SerializationFeature.INDENT_OUTPUT);
     }
 
     private Jackson2ObjectMapperBuilderCustomizer jsonCustomizer(JsonDeserializer<?>[] jsonDeserializers,
