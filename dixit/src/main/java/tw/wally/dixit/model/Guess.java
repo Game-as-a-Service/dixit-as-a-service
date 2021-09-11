@@ -1,15 +1,19 @@
 package tw.wally.dixit.model;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import tw.wally.dixit.exceptions.InvalidGameOperationException;
 
 /**
  * @author - wally55077@gmail.com
  */
 @Getter
+@EqualsAndHashCode
+@NoArgsConstructor
 public class Guess {
-    private final Player guesser;
-    private final PlayCard playCard;
+    private Player guesser;
+    private PlayCard playCard;
 
     public Guess(Player guesser, PlayCard playCard) {
         validateGuess(guesser, playCard);

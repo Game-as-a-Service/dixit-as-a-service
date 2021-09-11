@@ -77,7 +77,7 @@ public class DixitTest extends AbstractDixitTest {
 
         dixit.withdrawCards();
 
-        int expectedDeckSize = getCurrentDeckSizeAfterDealCard(5) + dixit.getCurrentRound().withdrawCards().size();
+        int expectedDeckSize = getCurrentDeckSizeAfterDealCard(5) + 5;
         int actualDeckSize = dixit.getDeckSize();
         assertEquals(expectedDeckSize, actualDeckSize);
     }
@@ -95,7 +95,7 @@ public class DixitTest extends AbstractDixitTest {
     }
 
     @Test
-    public void GivenGameScored_WhenOnePlayerAchievedWinningScore_ThenGameStateShouldBeEndedAndShouldHaveOneWinner() {
+    public void GivenGameScored_WhenOnePlayerAchievedWinningScore_ThenGameStateShouldBeOverAndShouldHaveOneWinner() {
         givenGameStartedAndRoundStateIsPlayerGuessing(4);
         var players = limit(dixit.getCurrentGuessers(), 1);
         makePlayersAchieveWinningScore(players);
@@ -185,7 +185,7 @@ public class DixitTest extends AbstractDixitTest {
     }
 
     private void assertGameIsEndAndShouldHaveWinners(Collection<Player> players) {
-        assertEquals(GameState.ENDED, dixit.getGameState());
+        assertEquals(GameState.OVER, dixit.getGameState());
         var winners = dixit.getWinners();
         assertEquals(players.size(), winners.size());
         assertTrue(winners.containsAll(players));

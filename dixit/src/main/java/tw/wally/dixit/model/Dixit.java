@@ -7,13 +7,12 @@ import tw.wally.dixit.exceptions.InvalidGameOperationException;
 import tw.wally.dixit.exceptions.InvalidGameStateException;
 import tw.wally.dixit.exceptions.NotFoundException;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import static java.lang.String.format;
 import static java.util.Collections.shuffle;
+import static java.util.Comparator.comparing;
+import static java.util.List.copyOf;
 import static tw.wally.dixit.utils.StreamUtils.*;
 
 /**
@@ -103,7 +102,8 @@ public class Dixit {
         getCurrentRound().score();
         var winners = filter(players, victoryCondition::isWinning);
         if (!winners.isEmpty()) {
-            gameState = GameState.ENDED;
+            winners.sort(comparing(Player::getScore).reversed());
+            gameState = GameState.OVER;
             this.winners = winners;
         }
     }
@@ -129,7 +129,7 @@ public class Dixit {
     }
 
     public Player getPlayer(String playerId) {
-        return findFirst(players, player -> playerId.equals(player.getId()))
+        return findFirst(getPlayers(), player -> playerId.equals(player.getId()))
                 .orElseThrow(() -> new NotFoundException(format("Player: %s not found", playerId)));
     }
 
@@ -145,12 +145,16 @@ public class Dixit {
         return gameState;
     }
 
+    public RoundState getCurrentRoundState() {
+        return getCurrentRound().getRoundState();
+    }
+
     public int getNumberOfRounds() {
         return rounds.size();
     }
 
     public List<Player> getPlayers() {
-        return players;
+        return copyOf(players);
     }
 
     public int getDeckSize() {
@@ -158,6 +162,6 @@ public class Dixit {
     }
 
     public Collection<Player> getWinners() {
-        return winners;
+        return copyOf(winners);
     }
 }

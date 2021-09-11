@@ -28,4 +28,9 @@ public class MongoDixitRepository implements DixitRepository {
     public Dixit save(Dixit dixit) {
         return mongoDixitDAO.save(toData(dixit)).toEntity();
     }
+
+    @Override
+    public void deleteAll() {
+        mongoDixitDAO.deleteAll();;
+    }
 }
