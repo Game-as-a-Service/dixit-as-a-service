@@ -1,9 +1,14 @@
 package tw.wally.dixit;
 
+import lombok.SneakyThrows;
 import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 
 import java.lang.reflect.Type;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * @author - wally55077@gmail.com
@@ -11,10 +16,11 @@ import java.lang.reflect.Type;
 public class DixitEventStompFrameHandler<T> implements StompFrameHandler {
 
     private final Class<T> tClass;
-    private T t;
+    private final BlockingQueue<T> blockingQueue;
 
     public DixitEventStompFrameHandler(Class<T> tClass) {
         this.tClass = tClass;
+        this.blockingQueue = new ArrayBlockingQueue<T>(1);
     }
 
     @Override
@@ -26,11 +32,12 @@ public class DixitEventStompFrameHandler<T> implements StompFrameHandler {
     @Override
     public void handleFrame(StompHeaders stompHeaders, Object o) {
         if (o != null && o.getClass() == tClass) {
-            this.t = (T) o;
+            this.blockingQueue.add((T) o);
         }
     }
 
+    @SneakyThrows
     public T getPayload() {
-        return this.t;
+        return blockingQueue.poll(1, SECONDS);
     }
 }
