@@ -35,7 +35,7 @@ public class CreateDixitUseCase extends AbstractDixitUseCase {
 
         players(request).forEach(dixit::join);
         dixit.start();
-        mayPublishDixitGameStartedEvents(dixit);
+        mayPublishDixitGameStartedAndDixitRoundStoryTellingEvents(dixit);
 
         dixitRepository.save(dixit);
     }
@@ -53,7 +53,7 @@ public class CreateDixitUseCase extends AbstractDixitUseCase {
         return players;
     }
 
-    private void mayPublishDixitGameStartedEvents(Dixit dixit) {
+    private void mayPublishDixitGameStartedAndDixitRoundStoryTellingEvents(Dixit dixit) {
         GameState gameState = dixit.getGameState();
         if (GameState.STARTED == gameState) {
             String dixitId = dixit.getId();

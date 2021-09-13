@@ -48,11 +48,11 @@ public class GuessStoryUseCase extends AbstractDixitUseCase {
             var dixitRoundScoringEvent = mapToList(dixit.getPlayers(), player -> new DixitRoundScoringEvent(dixitId, player.getId(), currentRoundState, currentGuesses));
             eventBus.publish(dixitRoundScoringEvent);
 
-            mayPublishDixitGameOverEvent(dixit);
+            mayPublishDixitGameOverOrDixitRoundOverEvent(dixit);
         }
     }
 
-    private void mayPublishDixitGameOverEvent(Dixit dixit) {
+    private void mayPublishDixitGameOverOrDixitRoundOverEvent(Dixit dixit) {
         String dixitId = dixit.getId();
         GameState gameState = dixit.getGameState();
         if (GameState.OVER == gameState) {
