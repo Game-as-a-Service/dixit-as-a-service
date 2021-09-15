@@ -17,8 +17,8 @@ public class DixitGameOverEvent extends Event {
     private GameState gameState;
     private Collection<Player> winners;
 
-    public DixitGameOverEvent(String gameId, String playerId, GameState gameState, Collection<Player> winners) {
-        super(gameId, playerId);
+    public DixitGameOverEvent(String gameId, int rounds, String playerId, GameState gameState, Collection<Player> winners) {
+        super(gameId, rounds, playerId);
         this.gameState = gameState;
         this.winners = winners;
     }

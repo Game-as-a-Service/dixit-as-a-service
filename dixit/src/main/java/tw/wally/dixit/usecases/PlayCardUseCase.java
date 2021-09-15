@@ -1,7 +1,6 @@
 package tw.wally.dixit.usecases;
 
 import tw.wally.dixit.EventBus;
-import tw.wally.dixit.events.DixitRoundCardPlayingEvent;
 import tw.wally.dixit.events.DixitRoundPlayerGuessingEvent;
 import tw.wally.dixit.model.Card;
 import tw.wally.dixit.model.Dixit;
@@ -43,8 +42,9 @@ public class PlayCardUseCase extends AbstractDixitUseCase {
         RoundState currentRoundState = dixit.getCurrentRoundState();
         if (RoundState.PLAYER_GUESSING == currentRoundState) {
             String dixitId = dixit.getId();
+            int currentRound = dixit.getNumberOfRounds();
             var currentPlayCards = dixit.getCurrentPlayCards();
-            var dixitRoundPlayerGuessingEvents = mapToList(dixit.getCurrentGuessers(), guesser -> new DixitRoundPlayerGuessingEvent(dixitId, guesser.getId(), currentRoundState, currentPlayCards));
+            var dixitRoundPlayerGuessingEvents = mapToList(dixit.getCurrentGuessers(), guesser -> new DixitRoundPlayerGuessingEvent(dixitId, currentRound, guesser.getId(), currentRoundState, currentPlayCards));
             eventBus.publish(dixitRoundPlayerGuessingEvents);
         }
     }

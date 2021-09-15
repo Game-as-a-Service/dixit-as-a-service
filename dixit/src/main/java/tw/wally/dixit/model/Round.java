@@ -177,9 +177,6 @@ public class Round {
     public List<Card> withdrawCards() {
         var playCards = new LinkedList<>(this.playCards.values());
         playCards.addFirst(story.getPlayCard());
-        this.story = null;
-        this.playCards.clear();
-        this.guesses.clear();
         return mapToList(playCards, PlayCard::getCard);
     }
 

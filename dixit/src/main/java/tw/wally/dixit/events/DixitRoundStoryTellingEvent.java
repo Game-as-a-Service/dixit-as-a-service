@@ -17,8 +17,8 @@ public class DixitRoundStoryTellingEvent extends Event {
     private RoundState roundState;
     private Collection<Card> handCards;
 
-    public DixitRoundStoryTellingEvent(String gameId, String playerId, RoundState roundState, Collection<Card> handCards) {
-        super(gameId, playerId);
+    public DixitRoundStoryTellingEvent(String gameId, int rounds, String playerId, RoundState roundState, Collection<Card> handCards) {
+        super(gameId, rounds, playerId);
         this.roundState = roundState;
         this.handCards = handCards;
     }

@@ -15,6 +15,7 @@ import tw.wally.dixit.repositories.DixitRepository;
 
 import javax.inject.Named;
 import java.util.Collection;
+import java.util.LinkedList;
 
 import static tw.wally.dixit.utils.StreamUtils.mapToList;
 
@@ -48,17 +49,18 @@ public class CreateDixitUseCase extends AbstractDixitUseCase {
 
     public Collection<tw.wally.dixit.model.Player> players(Request request) {
         var game = request.game;
-        var players = mapToList(game.players, Player::toPlayer);
-        players.add(game.host.toPlayer());
-        return players;
+        var players = new LinkedList<>(game.players);
+        players.addFirst(game.host);
+        return mapToList(players, Player::toPlayer);
     }
 
     private void mayPublishDixitGameStartedAndDixitRoundStoryTellingEvents(Dixit dixit) {
         GameState gameState = dixit.getGameState();
         if (GameState.STARTED == gameState) {
             String dixitId = dixit.getId();
+            int currentRound = dixit.getNumberOfRounds();
             var players = dixit.getPlayers();
-            var dixitGameStartedEvents = mapToList(players, player -> new DixitGameStartedEvent(dixitId, player.getId(), gameState, players));
+            var dixitGameStartedEvents = mapToList(players, player -> new DixitGameStartedEvent(dixitId, currentRound, player.getId(), gameState, players));
             eventBus.publish(dixitGameStartedEvents);
 
             mayPublishDixitRoundStoryTellingEvent(dixit);
@@ -69,8 +71,9 @@ public class CreateDixitUseCase extends AbstractDixitUseCase {
         String dixitId = dixit.getId();
         RoundState currentRoundState = dixit.getCurrentRoundState();
         if (RoundState.STORY_TELLING == currentRoundState) {
+            int currentRound = dixit.getNumberOfRounds();
             var storyteller = dixit.getCurrentStoryteller();
-            var dixitRoundStoryTellingEvent = new DixitRoundStoryTellingEvent(dixitId, storyteller.getId(), currentRoundState, storyteller.getHandCards());
+            var dixitRoundStoryTellingEvent = new DixitRoundStoryTellingEvent(dixitId, currentRound, storyteller.getId(), currentRoundState, storyteller.getHandCards());
             eventBus.publish(dixitRoundStoryTellingEvent);
         }
     }

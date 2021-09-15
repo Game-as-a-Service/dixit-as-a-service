@@ -1,6 +1,8 @@
 package tw.wally.dixit.model;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import tw.wally.dixit.exceptions.InvalidGameOperationException;
 
 import static java.lang.String.format;
@@ -9,10 +11,12 @@ import static java.lang.String.format;
  * @author - wally55077@gmail.com
  */
 @Getter
+@EqualsAndHashCode
+@NoArgsConstructor
 public class Story {
-    public static int MAX_LENGTH_OF_PHRASE = 20;
-    private final String phrase;
-    private final PlayCard playCard;
+    public static int MAX_LENGTH_OF_PHRASE = 30;
+    private String phrase;
+    private PlayCard playCard;
 
     public Story(String phrase, PlayCard playCard) {
         validatePhraseLength(phrase);

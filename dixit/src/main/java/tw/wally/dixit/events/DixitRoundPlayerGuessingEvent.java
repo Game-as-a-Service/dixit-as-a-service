@@ -20,8 +20,8 @@ public class DixitRoundPlayerGuessingEvent extends Event {
     private RoundState roundState;
     private Collection<PlayCard> playCards;
 
-    public DixitRoundPlayerGuessingEvent(String gameId, String playerId, RoundState roundState, Collection<PlayCard> playCards) {
-        super(gameId, playerId);
+    public DixitRoundPlayerGuessingEvent(String gameId, int rounds, String playerId, RoundState roundState, Collection<PlayCard> playCards) {
+        super(gameId, rounds, playerId);
         this.roundState = roundState;
         this.playCards = mapToList(playCards, this::renewPlayCard);
     }

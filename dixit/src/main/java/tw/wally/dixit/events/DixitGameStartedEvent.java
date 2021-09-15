@@ -17,8 +17,8 @@ public class DixitGameStartedEvent extends Event {
     private GameState gameState;
     private Collection<Player> players;
 
-    public DixitGameStartedEvent(String gameId, String playerId, GameState gameState, Collection<Player> players) {
-        super(gameId, playerId);
+    public DixitGameStartedEvent(String gameId, int rounds, String playerId, GameState gameState, Collection<Player> players) {
+        super(gameId, rounds, playerId);
         this.gameState = gameState;
         this.players = players;
     }

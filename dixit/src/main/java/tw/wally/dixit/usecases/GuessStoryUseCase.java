@@ -10,6 +10,8 @@ import tw.wally.dixit.repositories.DixitRepository;
 
 import javax.inject.Named;
 
+import java.util.List;
+
 import static tw.wally.dixit.utils.StreamUtils.mapToList;
 
 /**
@@ -44,8 +46,10 @@ public class GuessStoryUseCase extends AbstractDixitUseCase {
             dixit.score();
             dixit.withdrawCards();
             String dixitId = dixit.getId();
+            int currentRound = dixit.getNumberOfRounds();
+            Story story = dixit.getCurrentRound().getStory();
             var currentGuesses = dixit.getCurrentGuesses();
-            var dixitRoundScoringEvent = mapToList(dixit.getPlayers(), player -> new DixitRoundScoringEvent(dixitId, player.getId(), currentRoundState, currentGuesses));
+            var dixitRoundScoringEvent = mapToList(dixit.getPlayers(), player -> new DixitRoundScoringEvent(dixitId, currentRound, player.getId(), currentRoundState, story, currentGuesses));
             eventBus.publish(dixitRoundScoringEvent);
 
             mayPublishDixitGameOverOrDixitRoundOverEvent(dixit);
@@ -56,8 +60,9 @@ public class GuessStoryUseCase extends AbstractDixitUseCase {
         String dixitId = dixit.getId();
         GameState gameState = dixit.getGameState();
         if (GameState.OVER == gameState) {
+            int currentRound = dixit.getNumberOfRounds();
             var winners = dixit.getWinners();
-            var dixitGameOverEvent = mapToList(dixit.getPlayers(), player -> new DixitGameOverEvent(dixitId, player.getId(), gameState, winners));
+            var dixitGameOverEvent = mapToList(dixit.getPlayers(), player -> new DixitGameOverEvent(dixitId, currentRound, player.getId(), gameState, winners));
             eventBus.publish(dixitGameOverEvent);
         } else {
             mayPublishDixitRoundOverEvent(dixit);
@@ -69,7 +74,9 @@ public class GuessStoryUseCase extends AbstractDixitUseCase {
         if (RoundState.OVER == currentRoundStateAfterScored) {
             dixit.startNextRound();
             String dixitId = dixit.getId();
-            var dixitRoundOverEvents = mapToList(dixit.getPlayers(), player -> new DixitRoundOverEvent(dixitId, player.getId(), currentRoundStateAfterScored, player.getScore()));
+            int currentRound = dixit.getNumberOfRounds();
+            var players = dixit.getPlayers();
+            var dixitRoundOverEvents = mapToList(players, player -> new DixitRoundOverEvent(dixitId, currentRound, player.getId(), currentRoundStateAfterScored, players));
             eventBus.publish(dixitRoundOverEvents);
 
             mayPublishDixitRoundStoryTellingEvent(dixit);
@@ -80,8 +87,9 @@ public class GuessStoryUseCase extends AbstractDixitUseCase {
         RoundState currentRoundState = dixit.getCurrentRoundState();
         if (RoundState.STORY_TELLING == currentRoundState) {
             String dixitId = dixit.getId();
+            int currentRound = dixit.getNumberOfRounds();
             var storyteller = dixit.getCurrentStoryteller();
-            var dixitRoundStoryTellingEvent = new DixitRoundStoryTellingEvent(dixitId, storyteller.getId(), currentRoundState, storyteller.getHandCards());
+            var dixitRoundStoryTellingEvent = new DixitRoundStoryTellingEvent(dixitId, currentRound, storyteller.getId(), currentRoundState, storyteller.getHandCards());
             eventBus.publish(dixitRoundStoryTellingEvent);
         }
     }

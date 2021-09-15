@@ -45,7 +45,8 @@ public class TellStoryUseCase extends AbstractDixitUseCase {
         RoundState currentRoundState = dixit.getCurrentRoundState();
         if (RoundState.CARD_PLAYING == currentRoundState) {
             String dixitId = dixit.getId();
-            var dixitRoundCardPlayingEvents = mapToList(dixit.getCurrentGuessers(), guesser -> new DixitRoundCardPlayingEvent(dixitId, guesser.getId(), currentRoundState, guesser.getHandCards()));
+            int currentRound = dixit.getNumberOfRounds();
+            var dixitRoundCardPlayingEvents = mapToList(dixit.getCurrentGuessers(), guesser -> new DixitRoundCardPlayingEvent(dixitId, currentRound, guesser.getId(), currentRoundState, guesser.getHandCards()));
             eventBus.publish(dixitRoundCardPlayingEvents);
         }
     }

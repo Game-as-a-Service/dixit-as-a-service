@@ -28,6 +28,7 @@ public interface EventBus {
     @AllArgsConstructor
     abstract class Event {
         private String gameId;
+        private int rounds;
         private String playerId;
     }
 
