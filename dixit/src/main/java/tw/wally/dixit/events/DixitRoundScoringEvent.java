@@ -17,15 +17,16 @@ import static tw.wally.dixit.utils.StreamUtils.mapToList;
 public class DixitRoundScoringEvent extends Event {
     private RoundState roundState;
     private Story story;
+    private Collection<PlayCard> playCards;
     private Collection<Guess> guesses;
 
-    public DixitRoundScoringEvent(String gameId, int rounds, String playerId, RoundState roundState, Story story, Collection<Guess> guesses) {
+    public DixitRoundScoringEvent(String gameId, int rounds, String playerId, RoundState roundState, Story story, Collection<PlayCard> playCards, Collection<Guess> guesses) {
         super(gameId, rounds, playerId);
         this.roundState = roundState;
         this.story = new Story(story.getPhrase(), renewPlayCard(story.getPlayCard()));
+        this.playCards = mapToList(playCards, this::renewPlayCard);
         this.guesses = mapToList(guesses, this::renewGuess);
     }
-
 
     private Guess renewGuess(Guess guess) {
         return new Guess(renewPlayer(guess.getGuesser()), renewPlayCard(guess.getPlayCard()));

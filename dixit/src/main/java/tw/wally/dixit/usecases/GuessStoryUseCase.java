@@ -10,8 +10,6 @@ import tw.wally.dixit.repositories.DixitRepository;
 
 import javax.inject.Named;
 
-import java.util.List;
-
 import static tw.wally.dixit.utils.StreamUtils.mapToList;
 
 /**
@@ -48,8 +46,9 @@ public class GuessStoryUseCase extends AbstractDixitUseCase {
             String dixitId = dixit.getId();
             int currentRound = dixit.getNumberOfRounds();
             Story story = dixit.getCurrentRound().getStory();
+            var currentPlayCards = dixit.getCurrentPlayCards();
             var currentGuesses = dixit.getCurrentGuesses();
-            var dixitRoundScoringEvent = mapToList(dixit.getPlayers(), player -> new DixitRoundScoringEvent(dixitId, currentRound, player.getId(), currentRoundState, story, currentGuesses));
+            var dixitRoundScoringEvent = mapToList(dixit.getPlayers(), player -> new DixitRoundScoringEvent(dixitId, currentRound, player.getId(), currentRoundState, story, currentPlayCards, currentGuesses));
             eventBus.publish(dixitRoundScoringEvent);
 
             mayPublishDixitGameOverOrDixitRoundOverEvent(dixit);

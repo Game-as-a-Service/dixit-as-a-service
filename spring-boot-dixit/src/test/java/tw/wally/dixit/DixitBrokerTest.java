@@ -24,7 +24,6 @@ import java.util.Map;
 import static java.lang.String.format;
 import static java.util.Map.of;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static java.util.function.Function.identity;
 import static org.junit.jupiter.api.Assertions.*;
 import static tw.wally.dixit.configs.WebSocketConfiguration.STOMP_ROOT_DESTINATION_PREFIX;
 import static tw.wally.dixit.model.Round.GUESS_CORRECTLY_SCORE;
@@ -125,8 +124,9 @@ public class DixitBrokerTest extends AbstractDixitSpringBootTest {
         int currentRound = dixit.getNumberOfRounds() - 1;
         Round lastRound = dixit.getRounds().getFirst();
         Story story = lastRound.getStory();
+        var playCards = lastRound.getPlayCards();
         var currentGuesses = lastRound.getGuesses();
-        dixit.getPlayers().forEach(player -> assertGuesserReceiveDixitRoundScoringEvent(player, currentRound, story, currentGuesses));
+        dixit.getPlayers().forEach(player -> assertGuesserReceiveDixitRoundScoringEvent(player, currentRound, story, playCards, currentGuesses));
     }
 
     @Test
@@ -230,39 +230,49 @@ public class DixitBrokerTest extends AbstractDixitSpringBootTest {
         assertEqualsIgnoreOrder(guesser.getHandCards(), dixitRoundCardPlayingEvent.getHandCards());
     }
 
-    private void assertGuesserReceiveDixitRoundPlayerGuessingEvent(Player guesser, Collection<PlayCard> currentPlayCards) {
+    private void assertGuesserReceiveDixitRoundPlayerGuessingEvent(Player guesser, Collection<PlayCard> expectedPlayCards) {
         var dixitRoundPlayerGuessingEvent = receiveEvent(guesser, DixitRoundPlayerGuessingEvent.class);
         assertNotNull(dixitRoundPlayerGuessingEvent);
         assertEquals(FIRST_ROUND, dixitRoundPlayerGuessingEvent.getRounds());
         assertEquals(guesser.getId(), dixitRoundPlayerGuessingEvent.getPlayerId());
         assertEquals(RoundState.PLAYER_GUESSING, dixitRoundPlayerGuessingEvent.getRoundState());
-        var playCards = dixitRoundPlayerGuessingEvent.getPlayCards();
-        assertEqualsIgnoreOrder(currentPlayCards, playCards);
-        mapToList(playCards, PlayCard::getPlayer)
+
+        var actualPlayCards = dixitRoundPlayerGuessingEvent.getPlayCards();
+        assertEqualsIgnoreOrder(expectedPlayCards, actualPlayCards);
+        mapToList(actualPlayCards, PlayCard::getPlayer)
                 .forEach(player -> assertTrue(player.getHandCards().isEmpty()));
     }
 
-    private void assertGuesserReceiveDixitRoundScoringEvent(Player player, int currentRound, Story story, Collection<Guess> currentGuesses) {
+    private void assertGuesserReceiveDixitRoundScoringEvent(Player player, int currentRound, Story story,
+                                                            Collection<PlayCard> expectedPlayCards, Collection<Guess> expectedGuesses) {
         var dixitRoundScoringEvent = receiveEvent(player, DixitRoundScoringEvent.class);
         assertNotNull(dixitRoundScoringEvent);
         assertEquals(currentRound, dixitRoundScoringEvent.getRounds());
         assertEquals(player.getId(), dixitRoundScoringEvent.getPlayerId());
         assertEquals(RoundState.SCORING, dixitRoundScoringEvent.getRoundState());
         assertEquals(story, dixitRoundScoringEvent.getStory());
-        var guesses = dixitRoundScoringEvent.getGuesses();
-        assertEqualsIgnoreOrder(currentGuesses, guesses);
-        mapToList(guesses, Guess::getGuesser)
+
+        var actualPlayCards = dixitRoundScoringEvent.getPlayCards();
+        assertEqualsIgnoreOrder(expectedPlayCards, actualPlayCards);
+        mapToList(actualPlayCards, PlayCard::getPlayer)
+                .forEach(guesser -> assertTrue(guesser.getHandCards().isEmpty()));
+
+        var actualGuesses = dixitRoundScoringEvent.getGuesses();
+        assertEqualsIgnoreOrder(expectedGuesses, actualGuesses);
+        mapToList(actualGuesses, Guess::getGuesser)
                 .forEach(guesser -> assertTrue(guesser.getHandCards().isEmpty()));
     }
 
-    private void assertPlayerReceiveDixitRoundOverEvent(Player player) {
-        var dixitRoundOverEvent = receiveEvent(player, DixitRoundOverEvent.class);
+    private void assertPlayerReceiveDixitRoundOverEvent(Player expectedPlayer) {
+        var dixitRoundOverEvent = receiveEvent(expectedPlayer, DixitRoundOverEvent.class);
         assertNotNull(dixitRoundOverEvent);
         assertEquals(SECOND_ROUND, dixitRoundOverEvent.getRounds());
-        assertEquals(player.getId(), dixitRoundOverEvent.getPlayerId());
+        assertEquals(expectedPlayer.getId(), dixitRoundOverEvent.getPlayerId());
         assertEquals(RoundState.OVER, dixitRoundOverEvent.getRoundState());
-        var playerScores = toMap(dixitRoundOverEvent.getPlayers(), identity(), Player::getScore);
-        assertEquals(player.getScore(), playerScores.get(player));
+
+        Player actualPlayer = findFirst(dixitRoundOverEvent.getPlayers(), expectedPlayer::equals)
+                .orElseThrow();
+        assertEquals(expectedPlayer.getScore(), actualPlayer.getScore());
     }
 
     private void assertPlayerReceiveDixitGameOverEvent(Player player, int currentRound, Collection<Player> winners) {
