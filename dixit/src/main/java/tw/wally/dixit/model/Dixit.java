@@ -7,7 +7,10 @@ import tw.wally.dixit.exceptions.InvalidGameOperationException;
 import tw.wally.dixit.exceptions.InvalidGameStateException;
 import tw.wally.dixit.exceptions.NotFoundException;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
 import static java.lang.String.format;
 import static java.util.Collections.shuffle;
@@ -102,7 +105,8 @@ public class Dixit {
         getCurrentRound().score();
         var winners = filter(players, victoryCondition::isWinning);
         if (!winners.isEmpty()) {
-            winners.sort(comparing(Player::getScore).reversed());
+            winners.sort(comparing(Player::getScore).reversed()
+                    .thenComparing(Player::getId));
             gameState = GameState.OVER;
             this.winners = winners;
         }
