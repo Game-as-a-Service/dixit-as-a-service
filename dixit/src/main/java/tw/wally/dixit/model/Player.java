@@ -24,6 +24,7 @@ import static tw.wally.dixit.model.Round.GUESS_CORRECTLY_SCORE;
 public class Player {
     private String id;
     private String name;
+    private Color color;
     private Map<Integer, Card> handCards;
     private int score = 0;
 
@@ -67,6 +68,10 @@ public class Player {
             throw new InvalidGameOperationException(format("Score can't be lower than %d or higher than %d.", BONUS_SCORE, GUESS_CORRECTLY_SCORE));
         }
         this.score += score;
+    }
+
+    public void setColor(Color color) {
+        this.color = color;
     }
 
     public List<Card> getHandCards() {

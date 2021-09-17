@@ -9,6 +9,7 @@ import org.springframework.boot.jackson.JsonObjectSerializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import tw.wally.dixit.model.Card;
+import tw.wally.dixit.model.Color;
 import tw.wally.dixit.model.Player;
 
 import java.io.IOException;
@@ -33,9 +34,10 @@ public class PlayerJacksonConfiguration {
         protected Player deserializeObject(JsonParser jsonParser, DeserializationContext context, ObjectCodec codec, JsonNode tree) throws IOException {
             String id = tree.get("id").asText();
             String name = tree.get("name").asText();
+            Color color = codec.treeToValue(tree.get("color"), Color.class);
             var handCards = toMap((Collection<Card>) codec.treeToValue(tree.get("handCards"), Collection.class), Card::getId, identity());
             int score = tree.get("score").asInt();
-            return new Player(id, name, handCards, score);
+            return new Player(id, name, color, handCards, score);
         }
     };
 
@@ -49,6 +51,7 @@ public class PlayerJacksonConfiguration {
         protected void serializeObject(Player player, JsonGenerator jgen, SerializerProvider provider) throws IOException {
             jgen.writeStringField("id", player.getId());
             jgen.writeStringField("name", player.getName());
+            jgen.writeObjectField("color", player.getColor());
             jgen.writeObjectField("handCards", toMap(player.getHandCards(), Card::getId, identity()));
             jgen.writeNumberField("score", player.getScore());
         }

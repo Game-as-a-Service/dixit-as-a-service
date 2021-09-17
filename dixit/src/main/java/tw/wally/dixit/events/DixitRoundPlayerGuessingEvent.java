@@ -31,6 +31,8 @@ public class DixitRoundPlayerGuessingEvent extends Event {
     }
 
     private Player renewPlayer(Player player) {
-        return new Player(player.getId(), player.getName(), player.getScore());
+        Player newPlayer = new Player(player.getId(), player.getName(), player.getScore());
+        newPlayer.setColor(player.getColor());
+        return newPlayer;
     }
 }

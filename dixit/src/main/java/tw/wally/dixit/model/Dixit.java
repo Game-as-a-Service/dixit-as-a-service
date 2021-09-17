@@ -52,9 +52,11 @@ public class Dixit {
         if (GameState.PREPARING != gameState) {
             throw new InvalidGameStateException("When the game is preparing, player can't join the game");
         }
-        if (players.size() >= MAX_NUMBER_OF_PLAYERS) {
+        int numberOfPlayers = players.size();
+        if (numberOfPlayers >= MAX_NUMBER_OF_PLAYERS) {
             throw new InvalidGameOperationException(format("Number of players can't be higher than %d.", MAX_NUMBER_OF_PLAYERS));
         }
+        player.setColor(Color.values()[numberOfPlayers]);
         players.add(player);
     }
 
