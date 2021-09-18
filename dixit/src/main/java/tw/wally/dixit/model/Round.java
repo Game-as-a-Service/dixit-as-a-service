@@ -134,7 +134,7 @@ public class Round {
             scoreCorrectGuessers();
             scoreBonusGuessers();
         }
-        roundState = RoundState.ENDED;
+        roundState = RoundState.OVER;
     }
 
     private void validateRoundState(RoundState expectedState, Supplier<String> errorMessageSupplier, Runnable... actionsBeforeErrorThrow) {
@@ -166,6 +166,7 @@ public class Round {
         if (!playCards.containsKey(cardId)) {
             throw new NotFoundException(format("Card: %d does not found", cardId));
         }
+
         return playCards.get(cardId);
     }
 
@@ -178,6 +179,7 @@ public class Round {
         playCards.addFirst(story.getPlayCard());
         return mapToList(playCards, PlayCard::getCard);
     }
+
     public List<PlayCard> getPlayCards() {
         return copyOf(playCards.values());
     }

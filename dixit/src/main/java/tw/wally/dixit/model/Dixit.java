@@ -14,6 +14,8 @@ import java.util.List;
 
 import static java.lang.String.format;
 import static java.util.Collections.shuffle;
+import static java.util.Comparator.comparing;
+import static java.util.List.copyOf;
 import static tw.wally.dixit.utils.StreamUtils.*;
 
 /**
@@ -50,9 +52,11 @@ public class Dixit {
         if (GameState.PREPARING != gameState) {
             throw new InvalidGameStateException("When the game is preparing, player can't join the game");
         }
-        if (players.size() >= MAX_NUMBER_OF_PLAYERS) {
+        int numberOfPlayers = players.size();
+        if (numberOfPlayers >= MAX_NUMBER_OF_PLAYERS) {
             throw new InvalidGameOperationException(format("Number of players can't be higher than %d.", MAX_NUMBER_OF_PLAYERS));
         }
+        player.setColor(Color.values()[numberOfPlayers]);
         players.add(player);
     }
 
@@ -103,7 +107,9 @@ public class Dixit {
         getCurrentRound().score();
         var winners = filter(players, victoryCondition::isWinning);
         if (!winners.isEmpty()) {
-            gameState = GameState.ENDED;
+            winners.sort(comparing(Player::getScore).reversed()
+                    .thenComparing(Player::getId));
+            gameState = GameState.OVER;
             this.winners = winners;
         }
     }
@@ -129,7 +135,7 @@ public class Dixit {
     }
 
     public Player getPlayer(String playerId) {
-        return findFirst(players, player -> playerId.equals(player.getId()))
+        return findFirst(getPlayers(), player -> playerId.equals(player.getId()))
                 .orElseThrow(() -> new NotFoundException(format("Player: %s not found", playerId)));
     }
 
@@ -145,12 +151,16 @@ public class Dixit {
         return gameState;
     }
 
+    public RoundState getCurrentRoundState() {
+        return getCurrentRound().getRoundState();
+    }
+
     public int getNumberOfRounds() {
         return rounds.size();
     }
 
     public List<Player> getPlayers() {
-        return players;
+        return copyOf(players);
     }
 
     public int getDeckSize() {
@@ -158,6 +168,6 @@ public class Dixit {
     }
 
     public Collection<Player> getWinners() {
-        return winners;
+        return copyOf(winners);
     }
 }

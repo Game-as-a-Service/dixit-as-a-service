@@ -195,12 +195,12 @@ public class RoundTest extends AbstractDixitTest {
     }
 
     @Test
-    public void GivenRoundStateIsScoring_WhenRoundScore_ThenThenGoToEndedState() {
+    public void GivenRoundStateIsScoring_WhenRoundScore_ThenThenGoToOverState() {
         givenRoundStateIsScoring();
 
         currentRound.score();
 
-        assertEquals(RoundState.ENDED, currentRound.getState());
+        assertEquals(RoundState.OVER, currentRound.getState());
     }
 
     @Test

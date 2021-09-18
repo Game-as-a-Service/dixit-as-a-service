@@ -3,6 +3,7 @@ package tw.wally.dixit.usecases;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import tw.wally.dixit.EventBus;
 import tw.wally.dixit.exceptions.InvalidGameOperationException;
 import tw.wally.dixit.exceptions.NotFoundException;
 import tw.wally.dixit.model.Dixit;
@@ -16,6 +17,7 @@ import static java.lang.String.format;
 @AllArgsConstructor
 public abstract class AbstractDixitUseCase {
     protected final DixitRepository dixitRepository;
+    protected final EventBus eventBus;
 
     protected Dixit findDixit(String id) {
         return dixitRepository.findDixitById(id)

@@ -3,12 +3,17 @@ package tw.wally.dixit.usecases;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import tw.wally.dixit.EventBus;
+import tw.wally.dixit.events.DixitRoundCardPlayingEvent;
 import tw.wally.dixit.model.Card;
 import tw.wally.dixit.model.Dixit;
 import tw.wally.dixit.model.Player;
+import tw.wally.dixit.model.RoundState;
 import tw.wally.dixit.repositories.DixitRepository;
 
 import javax.inject.Named;
+
+import static tw.wally.dixit.utils.StreamUtils.mapToList;
 
 /**
  * @author - wally55077@gmail.com
@@ -16,8 +21,8 @@ import javax.inject.Named;
 @Named
 public class TellStoryUseCase extends AbstractDixitUseCase {
 
-    public TellStoryUseCase(DixitRepository dixitRepository) {
-        super(dixitRepository);
+    public TellStoryUseCase(DixitRepository dixitRepository, EventBus eventBus) {
+        super(dixitRepository, eventBus);
     }
 
     public void execute(Request request) {
@@ -25,9 +30,9 @@ public class TellStoryUseCase extends AbstractDixitUseCase {
         validateRound(dixit, request.round);
 
         tellStory(request, dixit);
+        mayPublishDixitRoundCardPlayingEvent(dixit);
 
-        dixit = dixitRepository.save(dixit);
-        mayPublishEvents(dixit);
+        dixitRepository.save(dixit);
     }
 
     private void tellStory(Request request, Dixit dixit) {
@@ -36,9 +41,14 @@ public class TellStoryUseCase extends AbstractDixitUseCase {
         dixit.tellStory(request.phrase, storyteller, card);
     }
 
-    // TODO: 發佈事件 回合玩家打牌
-    private void mayPublishEvents(Dixit dixit) {
-
+    private void mayPublishDixitRoundCardPlayingEvent(Dixit dixit) {
+        RoundState currentRoundState = dixit.getCurrentRoundState();
+        if (RoundState.CARD_PLAYING == currentRoundState) {
+            String dixitId = dixit.getId();
+            int currentRound = dixit.getNumberOfRounds();
+            var dixitRoundCardPlayingEvents = mapToList(dixit.getCurrentGuessers(), guesser -> new DixitRoundCardPlayingEvent(dixitId, currentRound, guesser.getId(), currentRoundState, guesser.getHandCards()));
+            eventBus.publish(dixitRoundCardPlayingEvents);
+        }
     }
 
     @Getter

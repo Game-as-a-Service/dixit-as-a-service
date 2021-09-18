@@ -3,13 +3,19 @@ package tw.wally.dixit.usecases;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import tw.wally.dixit.EventBus;
+import tw.wally.dixit.events.DixitGameStartedEvent;
+import tw.wally.dixit.events.DixitRoundStoryTellingEvent;
 import tw.wally.dixit.model.Dixit;
+import tw.wally.dixit.model.GameState;
+import tw.wally.dixit.model.RoundState;
 import tw.wally.dixit.model.VictoryCondition;
 import tw.wally.dixit.repositories.CardRepository;
 import tw.wally.dixit.repositories.DixitRepository;
 
 import javax.inject.Named;
 import java.util.Collection;
+import java.util.LinkedList;
 
 import static tw.wally.dixit.utils.StreamUtils.mapToList;
 
@@ -17,19 +23,22 @@ import static tw.wally.dixit.utils.StreamUtils.mapToList;
  * @author - wally55077@gmail.com
  */
 @Named
-@AllArgsConstructor
-public class CreateDixitUseCase {
-    private final DixitRepository dixitRepository;
+public class CreateDixitUseCase extends AbstractDixitUseCase {
     private final CardRepository cardRepository;
+
+    public CreateDixitUseCase(DixitRepository dixitRepository, CardRepository cardRepository, EventBus eventBus) {
+        super(dixitRepository, eventBus);
+        this.cardRepository = cardRepository;
+    }
 
     public void execute(Request request) {
         Dixit dixit = dixit(request);
 
         players(request).forEach(dixit::join);
         dixit.start();
+        mayPublishDixitGameStartedAndDixitRoundStoryTellingEvents(dixit);
 
-        dixit = dixitRepository.save(dixit);
-        mayPublishEvents(dixit);
+        dixitRepository.save(dixit);
     }
 
     public Dixit dixit(Request request) {
@@ -40,14 +49,33 @@ public class CreateDixitUseCase {
 
     public Collection<tw.wally.dixit.model.Player> players(Request request) {
         var game = request.game;
-        var players = mapToList(game.players, Player::toPlayer);
-        players.add(game.host.toPlayer());
-        return players;
+        var players = new LinkedList<>(game.players);
+        players.addFirst(game.host);
+        return mapToList(players, Player::toPlayer);
     }
 
-    // TODO: 發佈事件 開始遊戲、遊戲發牌、、新回合說故事
-    private void mayPublishEvents(Dixit dixit) {
+    private void mayPublishDixitGameStartedAndDixitRoundStoryTellingEvents(Dixit dixit) {
+        GameState gameState = dixit.getGameState();
+        if (GameState.STARTED == gameState) {
+            String dixitId = dixit.getId();
+            int currentRound = dixit.getNumberOfRounds();
+            var players = dixit.getPlayers();
+            var dixitGameStartedEvents = mapToList(players, player -> new DixitGameStartedEvent(dixitId, currentRound, player.getId(), gameState, players));
+            eventBus.publish(dixitGameStartedEvents);
 
+            mayPublishDixitRoundStoryTellingEvent(dixit);
+        }
+    }
+
+    private void mayPublishDixitRoundStoryTellingEvent(Dixit dixit) {
+        String dixitId = dixit.getId();
+        RoundState currentRoundState = dixit.getCurrentRoundState();
+        if (RoundState.STORY_TELLING == currentRoundState) {
+            int currentRound = dixit.getNumberOfRounds();
+            var storyteller = dixit.getCurrentStoryteller();
+            var dixitRoundStoryTellingEvent = new DixitRoundStoryTellingEvent(dixitId, currentRound, storyteller.getId(), currentRoundState, storyteller.getHandCards());
+            eventBus.publish(dixitRoundStoryTellingEvent);
+        }
     }
 
     @Getter

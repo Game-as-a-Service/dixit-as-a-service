@@ -12,4 +12,6 @@ public interface DixitRepository {
     Optional<Dixit> findDixitById(String id);
 
     Dixit save(Dixit dixit);
+
+    void deleteAll();
 }
