@@ -8,13 +8,14 @@ import tw.wally.dixit.exceptions.InvalidGameStateException;
 
 import java.util.*;
 
+import static java.util.Arrays.asList;
 import static java.util.List.of;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static tw.wally.dixit.model.Dixit.NUMBER_OF_PLAYER_HAND_CARDS;
 import static tw.wally.dixit.model.DixitTest.DEFAULT_CARD_SIZE;
+import static tw.wally.dixit.utils.StreamUtils.filterToList;
 import static tw.wally.dixit.utils.StreamUtils.generate;
-import static tw.wally.dixit.utils.StreamUtils.skip;
 
 public class RoundTest extends AbstractDixitTest {
 
@@ -29,7 +30,7 @@ public class RoundTest extends AbstractDixitTest {
         int numberOfPlayers = NUMBER_OF_GUESSERS + 1;
         var players = generatePlayers(numberOfPlayers);
         this.storyteller = players.get(0);
-        this.guessers = skip(players, 1);
+        this.guessers = filterToList(players, player -> !player.equals(storyteller));
         this.currentRound = new Round(storyteller, guessers);
         dealAllPlayersCards(players);
         assertEquals(RoundState.STORY_TELLING, currentRound.getState());
@@ -52,18 +53,17 @@ public class RoundTest extends AbstractDixitTest {
     public void WhenGuesserTellStory_ThenShouldFail() {
         Player guesser = guessers.get(0);
 
-        int expectedOfHandCards = guesser.getHandCards().size();
         assertThrows(InvalidGameOperationException.class, () -> tellStory(guesser));
-        assertEquals(expectedOfHandCards, guesser.getHandCards().size());
+        assertEquals(NUMBER_OF_PLAYER_HAND_CARDS, guesser.getHandCards().size());
     }
 
     @Test
     public void GivenStoryTold_WhenStorytellerTellStoryAgain_ThenShouldFail() {
         tellStory();
 
-        int expectedOfHandCards = storyteller.getHandCards().size();
         assertThrows(InvalidGameStateException.class, this::tellStory);
-        assertEquals(expectedOfHandCards, storyteller.getHandCards().size());
+        int expectedHandCards = NUMBER_OF_PLAYER_HAND_CARDS - 1;
+        assertEquals(expectedHandCards, storyteller.getHandCards().size());
     }
 
     @Test
@@ -81,9 +81,9 @@ public class RoundTest extends AbstractDixitTest {
         Player guesser1 = guessers.get(0);
         playCard(guesser1);
 
-        int expectedOfHandCards = storyteller.getHandCards().size();
         assertThrows(InvalidGameOperationException.class, () -> playCard(guesser1));
-        assertEquals(expectedOfHandCards, guesser1.getHandCards().size());
+        int expectedHandCards = NUMBER_OF_PLAYER_HAND_CARDS - 1;
+        assertEquals(expectedHandCards, guesser1.getHandCards().size());
     }
 
     @Test
@@ -91,9 +91,9 @@ public class RoundTest extends AbstractDixitTest {
         givenRoundStateIsPlayerGuessing();
 
         Player guesser1 = guessers.get(0);
-        int expectedOfHandCards = guesser1.getHandCards().size();
         assertThrows(InvalidGameStateException.class, () -> playCard(guesser1));
-        assertEquals(expectedOfHandCards, guesser1.getHandCards().size());
+        int expectedHandCards = NUMBER_OF_PLAYER_HAND_CARDS - 1;
+        assertEquals(expectedHandCards, guesser1.getHandCards().size());
     }
 
     @Test
@@ -112,7 +112,6 @@ public class RoundTest extends AbstractDixitTest {
         guessStory(guesser1, storyteller);
 
         assertThrows(InvalidGameOperationException.class, () -> guessStory(guesser1, storyteller));
-        assertEquals(NUMBER_OF_PLAYER_HAND_CARDS, guesser1.getHandCards().size());
     }
 
     @Test
@@ -123,7 +122,6 @@ public class RoundTest extends AbstractDixitTest {
         guessStory(guesser1, storyteller);
 
         assertThrows(InvalidGameOperationException.class, () -> guessStory(guesser1, storyteller));
-        assertEquals(NUMBER_OF_PLAYER_HAND_CARDS, guesser1.getHandCards().size());
     }
 
     @DisplayName("Given the story told and all guessers played the card and guessed the story correctly" +
@@ -164,7 +162,7 @@ public class RoundTest extends AbstractDixitTest {
         currentRound.score();
 
         int expectedStorytellerScore = 0;
-        var expectedGuessersScores = of(2, 3, 4);
+        var expectedGuessersScores = asList(2, 3, 4);
         assertStorytellerScoreAndAllGuesserScore(expectedStorytellerScore, expectedGuessersScores);
     }
 
@@ -190,17 +188,8 @@ public class RoundTest extends AbstractDixitTest {
         currentRound.score();
 
         int expectedStorytellerScore = 3;
-        var expectedGuessersScores = of(4, 1, 0);
+        var expectedGuessersScores = asList(4, 1, 0);
         assertStorytellerScoreAndAllGuesserScore(expectedStorytellerScore, expectedGuessersScores);
-    }
-
-    @Test
-    public void GivenRoundStateIsScoring_WhenRoundScore_ThenThenGoToOverState() {
-        givenRoundStateIsScoring();
-
-        currentRound.score();
-
-        assertEquals(RoundState.OVER, currentRound.getState());
     }
 
     @Test
@@ -216,7 +205,7 @@ public class RoundTest extends AbstractDixitTest {
 
     private void tellStory(Player player) {
         Card card = getRandomCard(player);
-        currentRound.tellStory(new Story(FAKE_PHRASE, new PlayCard(player, card)));
+        currentRound.tellStory(new Story(DIXIT_PHRASE, new PlayCard(player, card)));
         cardOfPlayers.put(player, card);
     }
 
@@ -238,13 +227,8 @@ public class RoundTest extends AbstractDixitTest {
 
     private void guessStory(Player guesser, Player playerWhoBeGuessed) {
         int cardId = cardOfPlayers.get(playerWhoBeGuessed).getId();
-        PlayCard playCard = currentRound.getPlayCardByCardId(cardId);
+        PlayCard playCard = currentRound.getPlayCard(cardId);
         currentRound.guessStory(new Guess(guesser, playCard));
-    }
-
-    private void givenRoundStateIsScoring() {
-        givenRoundStateIsPlayerGuessing();
-        guessers.forEach(guesser -> guessStory(guesser, storyteller));
     }
 
     private void givenRoundStateIsPlayerGuessing() {
@@ -257,8 +241,7 @@ public class RoundTest extends AbstractDixitTest {
         assertEquals(expectedStorytellerScore, storyteller.getScore());
         assertEquals(guessers.size(), expectedGuessersScores.size());
         for (int index = 0; index < guessers.size(); index++) {
-            Player guesser = guessers.get(index);
-            assertEquals(expectedGuessersScores.get(index), guesser.getScore());
+            assertEquals(expectedGuessersScores.get(index), guessers.get(index).getScore());
         }
     }
 

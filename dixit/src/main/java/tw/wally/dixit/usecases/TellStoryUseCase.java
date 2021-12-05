@@ -3,12 +3,9 @@ package tw.wally.dixit.usecases;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import tw.wally.dixit.EventBus;
-import tw.wally.dixit.events.DixitRoundCardPlayingEvent;
-import tw.wally.dixit.model.Card;
-import tw.wally.dixit.model.Dixit;
-import tw.wally.dixit.model.Player;
-import tw.wally.dixit.model.RoundState;
+import tw.wally.dixit.events.EventBus;
+import tw.wally.dixit.events.roundstate.DixitRoundCardPlayingEvent;
+import tw.wally.dixit.model.*;
 import tw.wally.dixit.repositories.DixitRepository;
 
 import javax.inject.Named;
@@ -30,8 +27,8 @@ public class TellStoryUseCase extends AbstractDixitUseCase {
         validateRound(dixit, request.round);
 
         tellStory(request, dixit);
-        mayPublishDixitRoundCardPlayingEvent(dixit);
 
+        publishDixitRoundCardPlayingEvents(dixit);
         dixitRepository.save(dixit);
     }
 
@@ -41,25 +38,30 @@ public class TellStoryUseCase extends AbstractDixitUseCase {
         dixit.tellStory(request.phrase, storyteller, card);
     }
 
-    private void mayPublishDixitRoundCardPlayingEvent(Dixit dixit) {
-        RoundState currentRoundState = dixit.getCurrentRoundState();
-        if (RoundState.CARD_PLAYING == currentRoundState) {
-            String dixitId = dixit.getId();
-            int currentRound = dixit.getNumberOfRounds();
-            var dixitRoundCardPlayingEvents = mapToList(dixit.getCurrentGuessers(), guesser -> new DixitRoundCardPlayingEvent(dixitId, currentRound, guesser.getId(), currentRoundState, guesser.getHandCards()));
-            eventBus.publish(dixitRoundCardPlayingEvents);
-        }
+    private void publishDixitRoundCardPlayingEvents(Dixit dixit) {
+        var players = dixit.getPlayers();
+        String dixitId = dixit.getId();
+        int rounds = dixit.getNumberOfRounds();
+        RoundState roundState = dixit.getCurrentRoundState();
+        Story story = dixit.getCurrentStory();
+        var playCards = dixit.getCurrentPlayCards();
+        var dixitRoundCardPlayingEvents = mapToList(players, player -> new DixitRoundCardPlayingEvent(dixitId, rounds, player.getId(), roundState, story, playCards));
+        eventBus.publish(dixitRoundCardPlayingEvents);
     }
 
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Request extends AbstractDixitUseCase.Request {
+        public int round;
         public String phrase;
+        public int cardId;
 
-        public Request(String gameId, int round, String phrase, int cardId) {
-            super(gameId, round, cardId);
+        public Request(String gameId, int round, String playerId, String phrase, int cardId) {
+            super(gameId, playerId);
+            this.round = round;
             this.phrase = phrase;
+            this.cardId = cardId;
         }
     }
 

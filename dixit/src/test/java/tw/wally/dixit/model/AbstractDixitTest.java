@@ -10,8 +10,8 @@ import static tw.wally.dixit.utils.StreamUtils.generate;
  */
 public class AbstractDixitTest {
 
-    protected static final String FAKE_PHRASE = "fakePhrase";
     protected static final String DIXIT_PLAYER = "dixitPlayer";
+    protected static final String DIXIT_PHRASE = "dixitPhrase";
     protected static final String CARD_IMAGE = "cardImage";
     protected static final Player FAKE_PLAYER = new Player(DIXIT_PLAYER + "Id", DIXIT_PLAYER);
     protected static final Card FAKE_CARD = new Card(MAX_VALUE, CARD_IMAGE);

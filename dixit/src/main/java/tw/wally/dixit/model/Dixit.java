@@ -7,15 +7,13 @@ import tw.wally.dixit.exceptions.InvalidGameOperationException;
 import tw.wally.dixit.exceptions.InvalidGameStateException;
 import tw.wally.dixit.exceptions.NotFoundException;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import static java.lang.String.format;
 import static java.util.Collections.shuffle;
 import static java.util.Comparator.comparing;
 import static java.util.List.copyOf;
+import static java.util.Optional.ofNullable;
 import static tw.wally.dixit.utils.StreamUtils.*;
 
 /**
@@ -30,21 +28,22 @@ public class Dixit {
     public static final int MIN_NUMBER_OF_PLAYERS = 4;
     public static final int MAX_NUMBER_OF_PLAYERS = 6;
     private final String id;
+    private GameState gameState;
     private final VictoryCondition victoryCondition;
     private final LinkedList<Card> deck;
-    private final List<Player> players;
-    private final LinkedList<Round> rounds;
-    private int currentStoryTellerPosition = -1;
-    private GameState gameState;
+    private List<Player> players;
+    private int numberOfRounds;
+    private Round round;
     private Collection<Player> winners;
 
     public Dixit(String id, VictoryCondition victoryCondition, Collection<Card> cards) {
-        this.gameState = GameState.PREPARING;
         this.id = id;
+        this.gameState = GameState.PREPARING;
         this.victoryCondition = victoryCondition;
         this.deck = new LinkedList<>(cards);
+        shuffle(this.deck);
         this.players = new ArrayList<>(MAX_NUMBER_OF_PLAYERS);
-        this.rounds = new LinkedList<>();
+        this.numberOfRounds = 0;
         this.winners = new ArrayList<>(MAX_NUMBER_OF_PLAYERS);
     }
 
@@ -85,27 +84,29 @@ public class Dixit {
 
     private void startNewRound() {
         shuffle(deck);
-        currentStoryTellerPosition++;
+        numberOfRounds++;
+        int currentStoryTellerPosition = numberOfRounds - 1;
         Player storyteller = players.get(currentStoryTellerPosition % players.size());
-        var guessers = filter(players, player -> player != storyteller);
-        rounds.add(new Round(storyteller, guessers));
+        var guessers = filterToList(players, player -> player != storyteller);
+        round = new Round(storyteller, guessers);
     }
 
     public void tellStory(String phrase, Player storyteller, Card card) {
-        getCurrentRound().tellStory(new Story(phrase, new PlayCard(storyteller, card)));
+        getRound().tellStory(new Story(phrase, new PlayCard(storyteller, card)));
     }
 
     public void playCard(Player player, Card card) {
-        getCurrentRound().playCard(new PlayCard(player, card));
+        getRound().playCard(new PlayCard(player, card));
     }
 
     public void guessStory(Player guesser, PlayCard playCard) {
-        getCurrentRound().guessStory(new Guess(guesser, playCard));
+        getRound().guessStory(new Guess(guesser, playCard));
     }
 
     public void score() {
-        getCurrentRound().score();
-        var winners = filter(players, victoryCondition::isWinning);
+        getRound().score();
+
+        var winners = filterToList(players, victoryCondition::isWinning);
         if (!winners.isEmpty()) {
             winners.sort(comparing(Player::getScore).reversed()
                     .thenComparing(Player::getId));
@@ -115,36 +116,45 @@ public class Dixit {
     }
 
     public void withdrawCards() {
-        getCurrentRound().withdrawCards().forEach(deck::addFirst);
+        getRound().withdrawCards().forEach(deck::addFirst);
     }
 
     public Player getCurrentStoryteller() {
-        return getCurrentRound().getStoryteller();
+        int currentStoryTellerPosition = numberOfRounds - 1;
+        return players.get(currentStoryTellerPosition % players.size());
     }
 
     public List<Player> getCurrentGuessers() {
-        return getCurrentRound().getGuessers();
+        return filterToList(players, player -> player != getCurrentStoryteller());
+    }
+
+    public Optional<Story> mayHaveCurrentStory() {
+        return ofNullable(getRound().getStory());
+    }
+
+    public Story getCurrentStory() {
+        return mayHaveCurrentStory().orElseThrow(() -> new NotFoundException("There's no current story"));
     }
 
     public List<PlayCard> getCurrentPlayCards() {
-        return getCurrentRound().getPlayCards();
+        return getRound().getPlayCards();
     }
 
     public List<Guess> getCurrentGuesses() {
-        return getCurrentRound().getGuesses();
+        return getRound().getGuesses();
     }
 
     public Player getPlayer(String playerId) {
-        return findFirst(getPlayers(), player -> playerId.equals(player.getId()))
+        return findFirst(players, player -> player.getId().equals(playerId))
                 .orElseThrow(() -> new NotFoundException(format("Player: %s not found", playerId)));
     }
 
     public PlayCard getPlayCard(int cardId) {
-        return getCurrentRound().getPlayCardByCardId(cardId);
+        return getRound().getPlayCard(cardId);
     }
 
-    public Round getCurrentRound() {
-        return rounds.getLast();
+    public Round getRound() {
+        return round;
     }
 
     public GameState getGameState() {
@@ -152,11 +162,11 @@ public class Dixit {
     }
 
     public RoundState getCurrentRoundState() {
-        return getCurrentRound().getRoundState();
+        return getRound().getRoundState();
     }
 
     public int getNumberOfRounds() {
-        return rounds.size();
+        return numberOfRounds;
     }
 
     public List<Player> getPlayers() {

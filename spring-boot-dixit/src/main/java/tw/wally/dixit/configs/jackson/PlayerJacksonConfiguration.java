@@ -13,10 +13,8 @@ import tw.wally.dixit.model.Color;
 import tw.wally.dixit.model.Player;
 
 import java.io.IOException;
-import java.util.Collection;
 
-import static java.util.function.Function.identity;
-import static tw.wally.dixit.utils.StreamUtils.toMap;
+import static java.util.Arrays.asList;
 
 /**
  * @author - wally55077@gmail.com
@@ -29,17 +27,17 @@ public class PlayerJacksonConfiguration {
             return Player.class;
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         protected Player deserializeObject(JsonParser jsonParser, DeserializationContext context, ObjectCodec codec, JsonNode tree) throws IOException {
             String id = tree.get("id").asText();
             String name = tree.get("name").asText();
             Color color = codec.treeToValue(tree.get("color"), Color.class);
-            var handCards = toMap((Collection<Card>) codec.treeToValue(tree.get("handCards"), Collection.class), Card::getId, identity());
+            var handCards = asList(codec.treeToValue(tree.get("handCards"), Card[].class));
             int score = tree.get("score").asInt();
             return new Player(id, name, color, handCards, score);
         }
     };
+
 
     public static final JsonSerializer<Player> SERIALIZER = new JsonObjectSerializer<>() {
         @Override
@@ -52,7 +50,7 @@ public class PlayerJacksonConfiguration {
             jgen.writeStringField("id", player.getId());
             jgen.writeStringField("name", player.getName());
             jgen.writeObjectField("color", player.getColor());
-            jgen.writeObjectField("handCards", toMap(player.getHandCards(), Card::getId, identity()));
+            jgen.writeObjectField("handCards", player.getHandCards());
             jgen.writeNumberField("score", player.getScore());
         }
     };

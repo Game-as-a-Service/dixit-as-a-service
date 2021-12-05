@@ -3,7 +3,7 @@ package tw.wally.dixit.usecases;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import tw.wally.dixit.EventBus;
+import tw.wally.dixit.events.EventBus;
 import tw.wally.dixit.exceptions.InvalidGameOperationException;
 import tw.wally.dixit.exceptions.NotFoundException;
 import tw.wally.dixit.model.Dixit;
@@ -32,17 +32,10 @@ public abstract class AbstractDixitUseCase {
 
     @Getter
     @NoArgsConstructor
+    @AllArgsConstructor
     public static class Request {
         public String gameId;
-        public int round;
         public String playerId;
-        public int cardId;
-
-        public Request(String gameId, int round, int cardId) {
-            this.gameId = gameId;
-            this.round = round;
-            this.cardId = cardId;
-        }
     }
 
 }

@@ -7,15 +7,15 @@ import tw.wally.dixit.exceptions.InvalidGameOperationException;
 import tw.wally.dixit.exceptions.InvalidGameStateException;
 import tw.wally.dixit.exceptions.NotFoundException;
 
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
 import static java.lang.String.format;
+import static java.util.Arrays.asList;
 import static java.util.List.copyOf;
-import static java.util.List.of;
 import static tw.wally.dixit.utils.StreamUtils.*;
 
 /**
@@ -28,19 +28,19 @@ public class Round {
     public static final int BONUS_SCORE = 1;
     public static final int NORMAL_SCORE = 2;
     public static final int GUESS_CORRECTLY_SCORE = 3;
+    private RoundState roundState;
+    private final int numberOfGuessers;
     private final Player storyteller;
     private final List<Player> guessers;
+    private Story story;
     private final Map<Integer, PlayCard> playCards;
     private final Map<Player, Guess> guesses;
-    private final int numberOfGuessers;
-    private RoundState roundState;
-    private Story story;
 
     public Round(Player storyteller, List<Player> guessers) {
         this.roundState = RoundState.STORY_TELLING;
+        this.numberOfGuessers = guessers.size();
         this.storyteller = storyteller;
         this.guessers = copyOf(guessers);
-        this.numberOfGuessers = guessers.size();
         this.playCards = new HashMap<>(numberOfGuessers);
         this.guesses = new HashMap<>(numberOfGuessers);
     }
@@ -52,15 +52,16 @@ public class Round {
     }
 
     private void validateTellStoryAction(Story story) {
-        Player player = story.getPlayer();
+        Player storyteller = story.getPlayer();
+        Card handCard = story.getCard();
         validateRoundState(RoundState.STORY_TELLING, () -> "When the round state isn't story telling, storyteller can't tell the story.",
-                () -> player.addHandCard(story.getCard()));
+                () -> storyteller.addHandCard(handCard));
         if (this.story != null) {
-            player.addHandCard(story.getCard());
+            storyteller.addHandCard(handCard);
             throw new InvalidGameOperationException("Story has existed, storyteller can't tell the story again.");
         }
-        if (!storyteller.equals(story.getPlayer())) {
-            player.addHandCard(story.getCard());
+        if (!this.storyteller.equals(story.getPlayer())) {
+            storyteller.addHandCard(handCard);
             throw new InvalidGameOperationException("Guesser can't tell the story.");
         }
     }
@@ -74,21 +75,22 @@ public class Round {
     }
 
     private void validatePlayCard(PlayCard playCard) {
-        Player player = playCard.getPlayer();
+        Player cardPlayer = playCard.getPlayer();
+        Card handCard = playCard.getCard();
         validateRoundState(RoundState.CARD_PLAYING, () -> "When the round state isn't card playing, guesser can't play the card.",
-                () -> player.addHandCard(playCard.getCard()));
+                () -> cardPlayer.addHandCard(handCard));
         if (playCards.size() == numberOfGuessers) {
-            player.addHandCard(playCard.getCard());
+            cardPlayer.addHandCard(handCard);
             throw new InvalidGameOperationException(format("Number of playCards can't be higher than %d.", numberOfGuessers));
         }
-        String playerName = player.getName();
-        if (!guessers.contains(player)) {
-            player.addHandCard(playCard.getCard());
-            throw new InvalidGameOperationException(format("Player: %s is not a guesser.", playerName));
+        String cardPlayerName = cardPlayer.getName();
+        if (!guessers.contains(cardPlayer)) {
+            cardPlayer.addHandCard(handCard);
+            throw new InvalidGameOperationException(format("Player: %s is not a guesser.", cardPlayerName));
         }
-        if (contains(playCards.values(), card -> card.getPlayer().equals(player))) {
-            player.addHandCard(playCard.getCard());
-            throw new InvalidGameOperationException(format("Player: %s can't play the card twice in same round.", playerName));
+        if (contains(playCards.values(), card -> card.getPlayer().equals(cardPlayer))) {
+            cardPlayer.addHandCard(handCard);
+            throw new InvalidGameOperationException(format("Player: %s can't play the card twice in same round.", cardPlayerName));
         }
     }
 
@@ -103,19 +105,15 @@ public class Round {
 
     private void validateGuessAction(Guess guess) {
         Player guesser = guess.getGuesser();
-        validateRoundState(RoundState.PLAYER_GUESSING, () -> "When the round state isn't player guessing, guesser can't guess the story.",
-                () -> guesser.addHandCard(guess.getCard()));
+        validateRoundState(RoundState.PLAYER_GUESSING, () -> "When the round state isn't player guessing, guesser can't guess the story.");
         if (guesses.size() == numberOfGuessers) {
-            guesser.addHandCard(guess.getCard());
             throw new InvalidGameOperationException(format("Number of guesses can't be higher than %d.", numberOfGuessers));
         }
         String guesserName = guesser.getName();
         if (!guessers.contains(guesser)) {
-            guesser.addHandCard(guess.getCard());
             throw new InvalidGameOperationException(format("Player: %s is not a guesser.", guesserName));
         }
         if (guesses.containsKey(guesser)) {
-            guesser.addHandCard(guess.getCard());
             throw new InvalidGameOperationException(format("Guesser: %s can't guess the story twice in same round.", guesserName));
         }
     }
@@ -123,32 +121,31 @@ public class Round {
     public void score() {
         validateRoundState(RoundState.SCORING, () -> "When the round state isn't scoring, Round can't score.");
         var numberOfCorrectGuessers =
-                count(guesses.values(), guess -> storyteller.equals(guess.getPlayerWhoPlayedCard()));
+                count(guesses.values(), guess -> storyteller.equals(guess.getPlayCardPlayer()));
         if (numberOfCorrectGuessers == numberOfGuessers) {
-            guessers.forEach(player -> player.addScore(NORMAL_SCORE));
+            guessers.forEach(guesser -> guesser.addScore(NORMAL_SCORE));
         } else if (numberOfCorrectGuessers == 0) {
-            guessers.forEach(player -> player.addScore(NORMAL_SCORE));
+            guessers.forEach(guesser -> guesser.addScore(NORMAL_SCORE));
             scoreBonusGuessers();
         } else if (numberOfCorrectGuessers < numberOfGuessers) {
-            storyteller.addScore(GUESS_CORRECTLY_SCORE);
+            story.getPlayer().addScore(GUESS_CORRECTLY_SCORE);
             scoreCorrectGuessers();
             scoreBonusGuessers();
         }
-        roundState = RoundState.OVER;
     }
 
     private void validateRoundState(RoundState expectedState, Supplier<String> errorMessageSupplier, Runnable... actionsBeforeErrorThrow) {
         if (expectedState != roundState) {
-            of(actionsBeforeErrorThrow).forEach(Runnable::run);
+            asList(actionsBeforeErrorThrow).forEach(Runnable::run);
             throw new InvalidGameStateException(errorMessageSupplier.get());
         }
     }
 
     private void scoreCorrectGuessers() {
         guesses.values().stream()
-                .filter(guess -> storyteller.equals(guess.getPlayerWhoPlayedCard()))
+                .filter(guess -> storyteller.equals(guess.getPlayCardPlayer()))
                 .map(Guess::getGuesser)
-                .forEach(player -> player.addScore(GUESS_CORRECTLY_SCORE));
+                .forEach(guesser -> guesser.addScore(GUESS_CORRECTLY_SCORE));
     }
 
     private void scoreBonusGuessers() {
@@ -156,17 +153,16 @@ public class Round {
                 .map(Guess::getPlayCard)
                 .map(PlayCard::getPlayer)
                 .filter(player -> !storyteller.equals(player))
-                .forEach(player -> player.addScore(BONUS_SCORE));
+                .forEach(guesser -> guesser.addScore(BONUS_SCORE));
     }
 
-    public PlayCard getPlayCardByCardId(int cardId) {
+    public PlayCard getPlayCard(int cardId) {
         if (story.getCardId() == cardId) {
             return story.getPlayCard();
         }
         if (!playCards.containsKey(cardId)) {
             throw new NotFoundException(format("Card: %d does not found", cardId));
         }
-
         return playCards.get(cardId);
     }
 
@@ -174,17 +170,17 @@ public class Round {
         return roundState;
     }
 
-    public List<Card> withdrawCards() {
-        var playCards = new LinkedList<>(this.playCards.values());
-        playCards.addFirst(story.getPlayCard());
-        return mapToList(playCards, PlayCard::getCard);
+    public Collection<Card> withdrawCards() {
+        var playCards = mapToList(this.playCards.values(), PlayCard::getCard);
+        playCards.add(this.story.getCard());
+        return copyOf(playCards);
     }
 
     public List<PlayCard> getPlayCards() {
-        return copyOf(playCards.values());
+        return copyOf(this.playCards.values());
     }
 
     public List<Guess> getGuesses() {
-        return copyOf(guesses.values());
+        return copyOf(this.guesses.values());
     }
 }

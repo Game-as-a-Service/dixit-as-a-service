@@ -1,4 +1,4 @@
-package tw.wally.dixit;
+package tw.wally.dixit.utils;
 
 import tw.wally.dixit.model.Card;
 import tw.wally.dixit.repositories.CardRepository;

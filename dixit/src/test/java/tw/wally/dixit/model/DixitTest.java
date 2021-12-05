@@ -138,7 +138,7 @@ public class DixitTest extends AbstractDixitTest {
     private void tellStory() {
         Player player = dixit.getCurrentStoryteller();
         Card card = getRandomCard(player);
-        dixit.tellStory(FAKE_PHRASE, player, card);
+        dixit.tellStory(DIXIT_PHRASE, player, card);
         cardOfPlayers.put(player, card);
     }
 
@@ -155,7 +155,7 @@ public class DixitTest extends AbstractDixitTest {
 
     private void guessStory(Player guesser, Player playerWhoBeGuessed) {
         int cardId = cardOfPlayers.get(playerWhoBeGuessed).getId();
-        PlayCard playCard = dixit.getCurrentRound().getPlayCardByCardId(cardId);
+        PlayCard playCard = dixit.getRound().getPlayCard(cardId);
         dixit.guessStory(guesser, playCard);
     }
 

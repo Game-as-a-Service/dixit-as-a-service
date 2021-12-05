@@ -3,7 +3,8 @@ package tw.wally.dixit.brokers;
 import lombok.AllArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
-import tw.wally.dixit.events.*;
+import tw.wally.dixit.events.DixitGameEvent;
+import tw.wally.dixit.events.DixitRoundEvent;
 
 /**
  * @author - wally55077@gmail.com
@@ -19,27 +20,12 @@ public class DixitBroker extends AbstractDixitBroker {
         String topic;
         String gameId = event.getGameId();
         String playerId = event.getPlayerId();
-        if (event instanceof DixitGameStartedEvent) {
-            var dixitGameStartedEvent = ((DixitGameStartedEvent) event);
-            topic = getDixitGameStateEventTopic(gameId, dixitGameStartedEvent.getGameState(), playerId);
-        } else if (event instanceof DixitRoundStoryTellingEvent) {
-            var dixitRoundStoryTellingEvent = ((DixitRoundStoryTellingEvent) event);
-            topic = getDixitRoundStateEventTopic(gameId, dixitRoundStoryTellingEvent.getRoundState(), playerId);
-        } else if (event instanceof DixitRoundCardPlayingEvent) {
-            var dixitRoundCardPlayingEvent = ((DixitRoundCardPlayingEvent) event);
-            topic = getDixitRoundStateEventTopic(gameId, dixitRoundCardPlayingEvent.getRoundState(), playerId);
-        } else if (event instanceof DixitRoundPlayerGuessingEvent) {
-            var dixitRoundPlayerGuessingEvent = ((DixitRoundPlayerGuessingEvent) event);
-            topic = getDixitRoundStateEventTopic(gameId, dixitRoundPlayerGuessingEvent.getRoundState(), playerId);
-        } else if (event instanceof DixitRoundScoringEvent) {
-            var dixitRoundScoringEvent = ((DixitRoundScoringEvent) event);
-            topic = getDixitRoundStateEventTopic(gameId, dixitRoundScoringEvent.getRoundState(), playerId);
-        } else if (event instanceof DixitRoundOverEvent) {
-            var dixitRoundOverEvent = ((DixitRoundOverEvent) event);
-            topic = getDixitRoundStateEventTopic(gameId, dixitRoundOverEvent.getRoundState(), playerId);
-        } else if (event instanceof DixitGameOverEvent) {
-            var dixitGameOverEvent = ((DixitGameOverEvent) event);
-            topic = getDixitGameStateEventTopic(gameId, dixitGameOverEvent.getGameState(), playerId);
+        if (event instanceof DixitGameEvent) {
+            var dixitGameEvent = ((DixitGameEvent) event);
+            topic = generateDixitGameStateEventTopic(gameId, dixitGameEvent.getGameState(), playerId);
+        } else if (event instanceof DixitRoundEvent) {
+            var dixitRoundEvent = ((DixitRoundEvent) event);
+            topic = generateDixitRoundStateEventTopic(gameId, dixitRoundEvent.getRoundState(), playerId);
         } else {
             throw new RuntimeException("Do not forget to add the event's condition");
         }
