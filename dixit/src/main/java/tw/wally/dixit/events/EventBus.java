@@ -1,4 +1,4 @@
-package tw.wally.dixit;
+package tw.wally.dixit.events;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

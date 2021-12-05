@@ -6,8 +6,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.ResultActions;
 import tw.wally.dixit.model.Card;
 import tw.wally.dixit.model.Dixit;
-import tw.wally.dixit.model.PlayCard;
 import tw.wally.dixit.model.Player;
+import tw.wally.dixit.model.Story;
 import tw.wally.dixit.repositories.DixitRepository;
 import tw.wally.dixit.usecases.CreateDixitUseCase;
 import tw.wally.dixit.usecases.GuessStoryUseCase;
@@ -15,12 +15,12 @@ import tw.wally.dixit.usecases.PlayCardUseCase;
 import tw.wally.dixit.usecases.TellStoryUseCase;
 
 import java.util.Collection;
-import java.util.Random;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static tw.wally.dixit.model.Round.GUESS_CORRECTLY_SCORE;
 import static tw.wally.dixit.utils.StreamUtils.*;
 
 /**
@@ -73,16 +73,20 @@ public class AbstractDixitSpringBootTest extends AbstractSpringBootTest {
     protected ResultActions tellStory(int currentRound, Player player) throws Exception {
         var handCard = getPlayCard(player);
         var playerId = player.getId();
-        var request = new TellStoryUseCase.Request(DIXIT_ID, currentRound, PHRASE, handCard.getId());
+        var request = new TellStoryUseCase.Request(DIXIT_ID, currentRound, PHRASE, playerId, handCard.getId());
         return mockMvc.perform(put(API_PREFIX + "/{dixitId}/rounds/{round}/players/{playerId}/story", DIXIT_ID, currentRound, playerId)
                 .contentType(APPLICATION_JSON)
                 .content(toJson(request)));
     }
 
     protected Dixit givenAllGuessersPlayedCardAndGetDixit() throws Exception {
+        return givenGuessersPlayedCardAndGetDixit(NUMBER_OF_PLAYERS);
+    }
+
+    protected Dixit givenGuessersPlayedCardAndGetDixit(int numberOfPlayers) throws Exception {
         Dixit dixit = givenStoryToldAndGetDixit();
         int currentRound = dixit.getNumberOfRounds();
-        var guessers = dixit.getCurrentGuessers();
+        var guessers = limit(dixit.getCurrentGuessers(), numberOfPlayers);
         eachGuesserPlayCard(currentRound, guessers);
         return dixitRepository.findDixitById(DIXIT_ID).orElseThrow();
     }
@@ -97,16 +101,14 @@ public class AbstractDixitSpringBootTest extends AbstractSpringBootTest {
     protected ResultActions playCard(int currentRound, Player player) throws Exception {
         var handCard = getPlayCard(player);
         var playerId = player.getId();
-        var request = new PlayCardUseCase.Request(DIXIT_ID, currentRound, handCard.getId());
+        var request = new PlayCardUseCase.Request(DIXIT_ID, currentRound, playerId, handCard.getId());
         return mockMvc.perform(put(API_PREFIX + "/{dixitId}/rounds/{round}/players/{playerId}/playcard", DIXIT_ID, currentRound, playerId)
                 .contentType(APPLICATION_JSON)
                 .content(toJson(request)));
     }
 
     private Card getPlayCard(Player player) {
-        var handCards = player.getHandCards();
-        var card = handCards.get(new Random().nextInt(handCards.size()));
-        return player.playCard(card.getId());
+        return player.getHandCards().get(0);
     }
 
     protected Dixit givenAllGuessersGuessedStoryAndGetDixit() throws Exception {
@@ -121,6 +123,14 @@ public class AbstractDixitSpringBootTest extends AbstractSpringBootTest {
         return dixitRepository.findDixitById(DIXIT_ID).orElseThrow();
     }
 
+    protected Dixit givenGuessersGuessedStoryAndGetDixit(int numberOfPlayers) throws Exception {
+        Dixit dixit = givenAllGuessersPlayedCardAndGetDixit();
+        int currentRound = dixit.getNumberOfRounds();
+        var guessers = limit(dixit.getCurrentGuessers(), numberOfPlayers);
+        eachGuesserGuessStory(currentRound, guessers);
+        return dixitRepository.findDixitById(DIXIT_ID).orElseThrow();
+    }
+
     protected void eachGuesserGuessStory(int currentRound, Collection<Player> players) throws Exception {
         for (Player player : players) {
             guessStory(currentRound, player)
@@ -129,20 +139,33 @@ public class AbstractDixitSpringBootTest extends AbstractSpringBootTest {
     }
 
     protected ResultActions guessStory(int currentRound, Player player) throws Exception {
-        var guessCard = getGuessedCard(player);
+        var guessCard = getStory();
         var playerId = player.getId();
-        var request = new GuessStoryUseCase.Request(DIXIT_ID, currentRound, guessCard.getId());
+        var request = new GuessStoryUseCase.Request(DIXIT_ID, currentRound, playerId, guessCard.getId());
         return mockMvc.perform(put(API_PREFIX + "/{dixitId}/rounds/{round}/players/{playerId}/guess", DIXIT_ID, currentRound, playerId)
                 .contentType(APPLICATION_JSON)
                 .content(toJson(request)));
     }
 
-    private Card getGuessedCard(Player player) {
+    private Card getStory() {
         return dixitRepository.findDixitById(DIXIT_ID)
-                .map(Dixit::getCurrentPlayCards)
-                .flatMap(playCards -> findFirst(playCards, playCard -> !playCard.getPlayer().equals(player)))
-                .map(PlayCard::getCard)
+                .map(Dixit::getCurrentStory)
+                .map(Story::getCard)
                 .orElseThrow();
     }
 
+    protected void makePlayersAchieveWinningScore(Dixit dixit) {
+        makePlayersAchieveWinningScore(dixit,dixit.getPlayers());
+    }
+
+    protected void makePlayersAchieveWinningScore(Dixit dixit, Collection<Player> achievedVictoryConditionPlayers) {
+        var players = filterToList(dixit.getPlayers(), achievedVictoryConditionPlayers::contains);
+        int scoreTimes = DEFAULT_WINNING_SCORE / GUESS_CORRECTLY_SCORE;
+        for (Player player : players) {
+            for (int currentTime = 0; currentTime < scoreTimes; currentTime++) {
+                player.addScore(GUESS_CORRECTLY_SCORE);
+            }
+        }
+        dixitRepository.save(dixit);
+    }
 }

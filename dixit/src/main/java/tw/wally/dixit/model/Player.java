@@ -8,12 +8,16 @@ import tw.wally.dixit.exceptions.NotFoundException;
 
 import java.util.*;
 
+import static java.lang.Math.max;
 import static java.lang.String.format;
 import static java.util.Objects.hash;
+import static java.util.Objects.requireNonNullElseGet;
+import static java.util.function.Function.identity;
 import static tw.wally.dixit.model.Dixit.NUMBER_OF_DEALT_CARD;
 import static tw.wally.dixit.model.Dixit.NUMBER_OF_PLAYER_HAND_CARDS;
 import static tw.wally.dixit.model.Round.BONUS_SCORE;
 import static tw.wally.dixit.model.Round.GUESS_CORRECTLY_SCORE;
+import static tw.wally.dixit.utils.StreamUtils.toMap;
 
 /**
  * @author - wally55077@gmail.com
@@ -26,17 +30,33 @@ public class Player {
     private String name;
     private Color color;
     private Map<Integer, Card> handCards;
-    private int score = 0;
+    private int score;
 
     public Player(String id, String name) {
         this(id, name, 0);
     }
 
+    public Player(String id, String name, Collection<Card> handCards, int score) {
+        this(id, name, toMap(requireNonNullElseGet(handCards, List::of), Card::getId, identity()), score);
+    }
+
     public Player(String id, String name, int score) {
+        this(id, name, new HashMap<>(NUMBER_OF_PLAYER_HAND_CARDS), score);
+    }
+
+    public Player(String id, String name, Map<Integer, Card> handCards, int score) {
         this.id = id;
         this.name = name;
-        this.handCards = new HashMap<>(NUMBER_OF_PLAYER_HAND_CARDS);
-        this.score = score;
+        this.handCards = requireNonNullElseGet(handCards, HashMap::new);
+        this.score = max(0, score);
+    }
+
+    public Player(String id, String name, Color color, int score) {
+        this(id, name, color, new HashMap<>(NUMBER_OF_PLAYER_HAND_CARDS), score);
+    }
+
+    public Player(String id, String name, Color color, Collection<Card> handCards, int score) {
+        this(id, name, color, toMap(requireNonNullElseGet(handCards, List::of), Card::getId, identity()), score);
     }
 
     public void addHandCard(Card card) {

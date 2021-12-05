@@ -1,9 +1,9 @@
 package tw.wally.dixit.repositories.entities;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 import tw.wally.dixit.model.PlayCard;
+import tw.wally.dixit.model.Player;
 
 /**
  * @author - wally55077@gmail.com
@@ -14,6 +14,10 @@ public class PlayCardData {
     private final PlayerData player;
     private final CardData card;
 
+    public String getPlayerId() {
+        return player.getId();
+    }
+
     public int getCardId() {
         return card.getId();
     }
@@ -22,7 +26,7 @@ public class PlayCardData {
         return new PlayCardData(PlayerData.toData(playCard.getPlayer()), CardData.toData(playCard.getCard()));
     }
 
-    public PlayCard toEntity() {
-        return new PlayCard(player.toEntity(), card.toEntity());
+    public PlayCard toEntity(Player player) {
+        return new PlayCard(player, card.toEntity());
     }
 }

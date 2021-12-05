@@ -25,7 +25,7 @@ public class Story {
     }
 
     private void validatePhraseLength(String phrase) {
-        if (phrase.length() > MAX_LENGTH_OF_PHRASE) {
+            if (phrase.length() > MAX_LENGTH_OF_PHRASE) {
             throw new InvalidGameOperationException(format("Phrase: %s length cannot exceed the limit %d", phrase, MAX_LENGTH_OF_PHRASE));
         }
     }

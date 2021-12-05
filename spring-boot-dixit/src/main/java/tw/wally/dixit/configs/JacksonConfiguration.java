@@ -9,6 +9,8 @@ import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilde
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import tw.wally.dixit.configs.jackson.GuessJacksonConfiguration;
+import tw.wally.dixit.configs.jackson.PlayCardJacksonConfiguration;
 import tw.wally.dixit.configs.jackson.PlayerJacksonConfiguration;
 
 /**
@@ -21,9 +23,15 @@ public class JacksonConfiguration {
     public ObjectMapper objectMapper() {
         var objectMapperBuilder = new Jackson2ObjectMapperBuilder();
         jsonCustomizer(new JsonDeserializer<?>[]{
-                        PlayerJacksonConfiguration.DESERIALIZER},
+                        PlayerJacksonConfiguration.DESERIALIZER,
+                        PlayCardJacksonConfiguration.DESERIALIZER,
+                        GuessJacksonConfiguration.DESERIALIZER
+                },
                 new JsonSerializer<?>[]{
-                        PlayerJacksonConfiguration.SERIALIZER})
+                        PlayerJacksonConfiguration.SERIALIZER,
+                        PlayCardJacksonConfiguration.SERIALIZER,
+                        GuessJacksonConfiguration.SERIALIZER
+                })
                 .customize(objectMapperBuilder);
         return objectMapperBuilder.build();
     }

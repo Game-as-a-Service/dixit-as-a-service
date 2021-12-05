@@ -3,17 +3,16 @@ package tw.wally.dixit.utils;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static java.util.stream.IntStream.range;
 
 /**
@@ -30,6 +29,14 @@ public class StreamUtils {
         return collection.stream().map(mapper).collect(toList());
     }
 
+    public static <T, R> Set<R> mapToSet(Collection<T> collection, Function<T, R> mapper) {
+        return collection.stream().map(mapper).collect(toSet());
+    }
+
+    public static <T, R> List<T> flatMapToList(Collection<R> collection, Function<? super R, ? extends Stream<? extends T>> flatMapping) {
+        return collection.stream().flatMap(flatMapping::apply).collect(toList());
+    }
+
     public static <T, K, U> Map<K, U> toMap(Collection<T> collection,
                                             Function<? super T, ? extends K> keyMapper,
                                             Function<T, U> valueMapper) {
@@ -40,7 +47,7 @@ public class StreamUtils {
         return range(0, count).mapToObj(mapper).collect(toList());
     }
 
-    public static <T> List<T> filter(Collection<T> collection, Predicate<T> predicate) {
+    public static <T> List<T> filterToList(Collection<T> collection, Predicate<T> predicate) {
         return collection.stream().filter(predicate).collect(toList());
     }
 

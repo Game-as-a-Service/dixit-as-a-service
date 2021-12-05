@@ -1,4 +1,4 @@
-package tw.wally.dixit;
+package tw.wally.dixit.utils;
 
 import lombok.SneakyThrows;
 import org.springframework.messaging.simp.stomp.StompFrameHandler;
@@ -20,7 +20,7 @@ public class DixitEventStompFrameHandler<T> implements StompFrameHandler {
 
     public DixitEventStompFrameHandler(Class<T> tClass) {
         this.tClass = tClass;
-        this.blockingQueue = new ArrayBlockingQueue<T>(1);
+        this.blockingQueue = new ArrayBlockingQueue<>(1);
     }
 
     @Override
@@ -32,12 +32,13 @@ public class DixitEventStompFrameHandler<T> implements StompFrameHandler {
     @Override
     public void handleFrame(StompHeaders stompHeaders, Object o) {
         if (o != null && o.getClass() == tClass) {
+            this.blockingQueue.clear();
             this.blockingQueue.add((T) o);
         }
     }
 
     @SneakyThrows
     public T getPayload() {
-        return blockingQueue.poll(1, SECONDS);
+        return this.blockingQueue.poll(10, SECONDS);
     }
 }

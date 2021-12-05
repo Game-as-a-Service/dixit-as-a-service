@@ -27,7 +27,7 @@ public class Guess {
         }
     }
 
-    public Player getPlayerWhoPlayedCard() {
+    public Player getPlayCardPlayer() {
         return playCard.getPlayer();
     }
 

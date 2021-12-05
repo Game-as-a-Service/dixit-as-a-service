@@ -1,10 +1,13 @@
 package tw.wally.dixit.usecases;
 
-import tw.wally.dixit.EventBus;
-import tw.wally.dixit.events.DixitGameOverEvent;
-import tw.wally.dixit.events.DixitRoundOverEvent;
-import tw.wally.dixit.events.DixitRoundScoringEvent;
-import tw.wally.dixit.events.DixitRoundStoryTellingEvent;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import tw.wally.dixit.events.EventBus;
+import tw.wally.dixit.events.gamestate.DixitGameOverEvent;
+import tw.wally.dixit.events.roundstate.DixitRoundPlayerGuessingEvent;
+import tw.wally.dixit.events.roundstate.DixitRoundScoringEvent;
+import tw.wally.dixit.events.roundstate.DixitRoundStoryTellingEvent;
 import tw.wally.dixit.model.*;
 import tw.wally.dixit.repositories.DixitRepository;
 
@@ -27,8 +30,9 @@ public class GuessStoryUseCase extends AbstractDixitUseCase {
         validateRound(dixit, request.round);
 
         guessStory(request, dixit);
-        mayPublishDixitRoundScoringEvent(dixit);
 
+        publishDixitRoundPlayerGuessingEvents(dixit);
+        mayPublishDixitRoundScoringEvents(dixit);
         dixitRepository.save(dixit);
     }
 
@@ -38,58 +42,70 @@ public class GuessStoryUseCase extends AbstractDixitUseCase {
         dixit.guessStory(guesser, playCard);
     }
 
-    private void mayPublishDixitRoundScoringEvent(Dixit dixit) {
-        RoundState currentRoundState = dixit.getCurrentRoundState();
-        if (RoundState.SCORING == currentRoundState) {
+    private void publishDixitRoundPlayerGuessingEvents(Dixit dixit) {
+        var players = dixit.getPlayers();
+        String dixitId = dixit.getId();
+        int rounds = dixit.getNumberOfRounds();
+        Story story = dixit.getCurrentStory();
+        var playCards = dixit.getCurrentPlayCards();
+        var guesses = dixit.getCurrentGuesses();
+        var dixitRoundPlayerGuessingEvents = mapToList(players, player -> new DixitRoundPlayerGuessingEvent(dixitId, rounds, player.getId(), RoundState.PLAYER_GUESSING, story, playCards, guesses));
+        eventBus.publish(dixitRoundPlayerGuessingEvents);
+    }
+
+    private void mayPublishDixitRoundScoringEvents(Dixit dixit) {
+        RoundState roundState = dixit.getCurrentRoundState();
+        if (RoundState.SCORING == roundState) {
             dixit.score();
             dixit.withdrawCards();
+            var players = dixit.getPlayers();
             String dixitId = dixit.getId();
-            int currentRound = dixit.getNumberOfRounds();
-            Story story = dixit.getCurrentRound().getStory();
-            var currentPlayCards = dixit.getCurrentPlayCards();
-            var currentGuesses = dixit.getCurrentGuesses();
-            var dixitRoundScoringEvent = mapToList(dixit.getPlayers(), player -> new DixitRoundScoringEvent(dixitId, currentRound, player.getId(), currentRoundState, story, currentPlayCards, currentGuesses));
-            eventBus.publish(dixitRoundScoringEvent);
+            int rounds = dixit.getNumberOfRounds();
+            var dixitRoundScoringEvents = mapToList(players, player -> new DixitRoundScoringEvent(dixitId, rounds, player.getId(), roundState, players));
+            eventBus.publish(dixitRoundScoringEvents);
 
-            mayPublishDixitGameOverOrDixitRoundOverEvent(dixit);
+            mayPublishDixitGameOverOrDixitRoundStoryTellingEvents(dixit);
         }
     }
 
-    private void mayPublishDixitGameOverOrDixitRoundOverEvent(Dixit dixit) {
+    private void mayPublishDixitGameOverOrDixitRoundStoryTellingEvents(Dixit dixit) {
         String dixitId = dixit.getId();
         GameState gameState = dixit.getGameState();
         if (GameState.OVER == gameState) {
-            int currentRound = dixit.getNumberOfRounds();
+            int rounds = dixit.getNumberOfRounds();
             var winners = dixit.getWinners();
-            var dixitGameOverEvent = mapToList(dixit.getPlayers(), player -> new DixitGameOverEvent(dixitId, currentRound, player.getId(), gameState, winners));
-            eventBus.publish(dixitGameOverEvent);
+            var dixitGameOverEvents = mapToList(dixit.getPlayers(), player -> new DixitGameOverEvent(dixitId, rounds, player.getId(), gameState, winners));
+            eventBus.publish(dixitGameOverEvents);
         } else {
-            mayPublishDixitRoundOverEvent(dixit);
-        }
-    }
-
-    private void mayPublishDixitRoundOverEvent(Dixit dixit) {
-        RoundState currentRoundStateAfterScored = dixit.getCurrentRoundState();
-        if (RoundState.OVER == currentRoundStateAfterScored) {
             dixit.startNextRound();
-            String dixitId = dixit.getId();
-            int currentRound = dixit.getNumberOfRounds();
-            var players = dixit.getPlayers();
-            var dixitRoundOverEvents = mapToList(players, player -> new DixitRoundOverEvent(dixitId, currentRound, player.getId(), currentRoundStateAfterScored, players));
-            eventBus.publish(dixitRoundOverEvents);
-
-            mayPublishDixitRoundStoryTellingEvent(dixit);
+            publishDixitRoundStoryTellingEvents(dixit);
         }
     }
 
-    private void mayPublishDixitRoundStoryTellingEvent(Dixit dixit) {
+    private void publishDixitRoundStoryTellingEvents(Dixit dixit) {
         RoundState currentRoundState = dixit.getCurrentRoundState();
         if (RoundState.STORY_TELLING == currentRoundState) {
             String dixitId = dixit.getId();
-            int currentRound = dixit.getNumberOfRounds();
+            int rounds = dixit.getNumberOfRounds();
+            var players = dixit.getPlayers();
             var storyteller = dixit.getCurrentStoryteller();
-            var dixitRoundStoryTellingEvent = new DixitRoundStoryTellingEvent(dixitId, currentRound, storyteller.getId(), currentRoundState, storyteller.getHandCards());
-            eventBus.publish(dixitRoundStoryTellingEvent);
+            var dixitRoundStoryTellingEvents = mapToList(players, player -> new DixitRoundStoryTellingEvent(dixitId, rounds, currentRoundState, storyteller, player));
+
+            eventBus.publish(dixitRoundStoryTellingEvents);
+        }
+    }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Request extends AbstractDixitUseCase.Request {
+        public int round;
+        public int cardId;
+
+        public Request(String gameId, int round, String playerId, int cardId) {
+            super(gameId, playerId);
+            this.round = round;
+            this.cardId = cardId;
         }
     }
 
