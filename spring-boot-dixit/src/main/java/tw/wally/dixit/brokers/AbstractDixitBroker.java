@@ -17,7 +17,7 @@ public abstract class AbstractDixitBroker implements EventBus {
         return format("%s/dixit/%s/gameStates/%s/players/%s", STOMP_ROOT_DESTINATION_PREFIX, gameId, gameState, playerId);
     }
 
-    // topic/dixit/{dixitId}/roundStates/{roundState}/players/{playerId} RoundState: STORY_TELLING | CARD_PLAYING | PLAYER_GUESSING | SCORING
+    // topic/dixit/{dixitId}/roundStates/{roundState}/players/{playerId} RoundState: STORY_TELLING | CARD_PLAYING | STORY_GUESSING | SCORING
     protected String generateDixitRoundStateEventTopic(String gameId, RoundState roundState, String playerId) {
         return format("%s/dixit/%s/roundStates/%s/players/%s", STOMP_ROOT_DESTINATION_PREFIX, gameId, roundState, playerId);
     }

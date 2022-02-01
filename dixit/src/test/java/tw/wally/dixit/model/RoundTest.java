@@ -67,12 +67,12 @@ public class RoundTest extends AbstractDixitTest {
     }
 
     @Test
-    public void GivenStoryTold_WhenAllGuessersPlayCard_ThenGoToPlayerGuessingState() {
+    public void GivenStoryTold_WhenAllGuessersPlayCard_ThenGoToStoryGuessingState() {
         tellStory();
 
         guessers.forEach(this::playCard);
 
-        assertEquals(RoundState.PLAYER_GUESSING, currentRound.getState());
+        assertEquals(RoundState.STORY_GUESSING, currentRound.getState());
     }
 
     @Test
@@ -88,7 +88,7 @@ public class RoundTest extends AbstractDixitTest {
 
     @Test
     public void GivenStoryToldAndAllGuessersPlayedCard_WhenGuesser1PlayCardAgain_ThenShouldFail() {
-        givenRoundStateIsPlayerGuessing();
+        givenRoundStateIsStoryGuessing();
 
         Player guesser1 = guessers.get(0);
         assertThrows(InvalidGameStateException.class, () -> playCard(guesser1));
@@ -97,8 +97,8 @@ public class RoundTest extends AbstractDixitTest {
     }
 
     @Test
-    public void GivenRoundStateIsPlayerGuessing_WhenAllGuessersGuessStory_ThenGoToScoringState() {
-        givenRoundStateIsPlayerGuessing();
+    public void GivenRoundStateIsStoryGuessing_WhenAllGuessersGuessStory_ThenGoToScoringState() {
+        givenRoundStateIsStoryGuessing();
 
         guessers.forEach(player -> guessStory(player, storyteller));
 
@@ -106,8 +106,8 @@ public class RoundTest extends AbstractDixitTest {
     }
 
     @Test
-    public void GivenRoundStateIsPlayerGuessingAndGuesser1GuessedStory_WhenGuesser1GuessStoryAgain_ThenShouldFail() {
-        givenRoundStateIsPlayerGuessing();
+    public void GivenRoundStateIsStoryGuessingAndGuesser1GuessedStory_WhenGuesser1GuessStoryAgain_ThenShouldFail() {
+        givenRoundStateIsStoryGuessing();
         Player guesser1 = guessers.get(0);
         guessStory(guesser1, storyteller);
 
@@ -115,8 +115,8 @@ public class RoundTest extends AbstractDixitTest {
     }
 
     @Test
-    public void GivenRoundStateIsPlayerGuessingAndAllGuessersGuessedStory_WhenGuesser1GuessStoryAgain_ThenShouldFail() {
-        givenRoundStateIsPlayerGuessing();
+    public void GivenRoundStateIsStoryGuessingAndAllGuessersGuessedStory_WhenGuesser1GuessStoryAgain_ThenShouldFail() {
+        givenRoundStateIsStoryGuessing();
 
         Player guesser1 = guessers.get(0);
         guessStory(guesser1, storyteller);
@@ -130,7 +130,7 @@ public class RoundTest extends AbstractDixitTest {
             "Then storyteller should be 0 points and all guessers should be 2 points")
     @Test
     public void testAllGuessersFindStorytellerCard() {
-        givenRoundStateIsPlayerGuessing();
+        givenRoundStateIsStoryGuessing();
         assertEquals(0, storyteller.getScore());
         guessers.forEach(guesser -> assertEquals(0, guesser.getScore()));
         guessers.forEach(guesser -> guessStory(guesser, storyteller));
@@ -150,7 +150,7 @@ public class RoundTest extends AbstractDixitTest {
             "and guesser (B) should get 1 bonus and guesser (C) should get 2 bonus")
     @Test
     public void testNoGuessersFindStorytellerCard() {
-        givenRoundStateIsPlayerGuessing();
+        givenRoundStateIsStoryGuessing();
         assertEquals(0, storyteller.getScore());
         guessers.forEach(guesser -> assertEquals(0, guesser.getScore()));
         var A = guessers.get(0);
@@ -175,7 +175,7 @@ public class RoundTest extends AbstractDixitTest {
             "and guesser (A) should get 1 bonus and guesser (B) should get 1 bonus")
     @Test
     public void testAtLeastOneGuesserButNotAllGuessersFindStorytellerCard() {
-        givenRoundStateIsPlayerGuessing();
+        givenRoundStateIsStoryGuessing();
         assertEquals(0, storyteller.getScore());
         guessers.forEach(guesser -> assertEquals(0, guesser.getScore()));
         var A = guessers.get(0);
@@ -193,8 +193,8 @@ public class RoundTest extends AbstractDixitTest {
     }
 
     @Test
-    public void GivenRoundStateIsPlayerGuessing_WhenRoundScore_ThenShouldFail() {
-        givenRoundStateIsPlayerGuessing();
+    public void GivenRoundStateIsStoryGuessing_WhenRoundScore_ThenShouldFail() {
+        givenRoundStateIsStoryGuessing();
 
         assertThrows(InvalidGameStateException.class, () -> currentRound.score());
     }
@@ -231,7 +231,7 @@ public class RoundTest extends AbstractDixitTest {
         currentRound.guessStory(new Guess(guesser, playCard));
     }
 
-    private void givenRoundStateIsPlayerGuessing() {
+    private void givenRoundStateIsStoryGuessing() {
         tellStory();
         guessers.forEach(this::playCard);
         assertEquals(NUMBER_OF_GUESSERS, guessers.size());

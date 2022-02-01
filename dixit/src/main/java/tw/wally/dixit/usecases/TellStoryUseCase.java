@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import tw.wally.dixit.events.EventBus;
-import tw.wally.dixit.events.roundstate.DixitRoundCardPlayingEvent;
+import tw.wally.dixit.events.roundstate.DixitRoundCardPlayedEvent;
 import tw.wally.dixit.model.*;
 import tw.wally.dixit.repositories.DixitRepository;
 
@@ -28,7 +28,7 @@ public class TellStoryUseCase extends AbstractDixitUseCase {
 
         tellStory(request, dixit);
 
-        publishDixitRoundCardPlayingEvents(dixit);
+        publishDixitRoundCardPlayedEvents(dixit);
         dixitRepository.save(dixit);
     }
 
@@ -38,15 +38,15 @@ public class TellStoryUseCase extends AbstractDixitUseCase {
         dixit.tellStory(request.phrase, storyteller, card);
     }
 
-    private void publishDixitRoundCardPlayingEvents(Dixit dixit) {
+    private void publishDixitRoundCardPlayedEvents(Dixit dixit) {
         var players = dixit.getPlayers();
         String dixitId = dixit.getId();
         int rounds = dixit.getNumberOfRounds();
         RoundState roundState = dixit.getCurrentRoundState();
         Story story = dixit.getCurrentStory();
         var playCards = dixit.getCurrentPlayCards();
-        var dixitRoundCardPlayingEvents = mapToList(players, player -> new DixitRoundCardPlayingEvent(dixitId, rounds, player.getId(), roundState, story, playCards));
-        eventBus.publish(dixitRoundCardPlayingEvents);
+        var dixitRoundCardPlayedEvents = mapToList(players, player -> new DixitRoundCardPlayedEvent(dixitId, rounds, player.getId(), roundState, story, playCards));
+        eventBus.publish(dixitRoundCardPlayedEvents);
     }
 
     @Getter

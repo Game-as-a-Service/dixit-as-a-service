@@ -14,11 +14,11 @@ import java.util.Collection;
  */
 @Getter
 @NoArgsConstructor
-public class DixitRoundStoryTellingEvent extends DixitRoundEvent {
+public class DixitRoundStoryToldEvent extends DixitRoundEvent {
     private Player storyteller;
     private Collection<Card> handCards;
 
-    public DixitRoundStoryTellingEvent(String gameId, int rounds, RoundState roundState, Player storyteller, Player player) {
+    public DixitRoundStoryToldEvent(String gameId, int rounds, RoundState roundState, Player storyteller, Player player) {
         super(gameId, rounds, player.getId(), roundState);
         this.roundState = roundState;
         this.storyteller = new Player(storyteller.getId(), storyteller.getName(), storyteller.getColor(), storyteller.getScore());

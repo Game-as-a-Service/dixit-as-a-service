@@ -4,8 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import tw.wally.dixit.events.EventBus;
-import tw.wally.dixit.events.roundstate.DixitRoundCardPlayingEvent;
-import tw.wally.dixit.events.roundstate.DixitRoundPlayerGuessingEvent;
+import tw.wally.dixit.events.roundstate.DixitRoundCardPlayedEvent;
+import tw.wally.dixit.events.roundstate.DixitRoundStoryGuessedEvent;
 import tw.wally.dixit.exceptions.InvalidGameOperationException;
 import tw.wally.dixit.model.*;
 import tw.wally.dixit.repositories.DixitRepository;
@@ -31,8 +31,8 @@ public class PlayCardUseCase extends AbstractDixitUseCase {
 
         playCard(request, dixit);
 
-        publishDixitRoundCardPlayingEvents(dixit);
-        mayPublishDixitRoundPlayerGuessingEvents(dixit);
+        publishDixitRoundCardPlayedEvents(dixit);
+        mayPublishDixitRoundStoryGuessedEvents(dixit);
         dixitRepository.save(dixit);
     }
 
@@ -50,27 +50,27 @@ public class PlayCardUseCase extends AbstractDixitUseCase {
         }
     }
 
-    private void publishDixitRoundCardPlayingEvents(Dixit dixit) {
+    private void publishDixitRoundCardPlayedEvents(Dixit dixit) {
         var players = dixit.getPlayers();
         String dixitId = dixit.getId();
         int rounds = dixit.getNumberOfRounds();
         Story story = dixit.getCurrentStory();
         var playCards = dixit.getCurrentPlayCards();
-        var dixitRoundCardPlayingEvents = mapToList(players, player -> new DixitRoundCardPlayingEvent(dixitId, rounds, player.getId(), RoundState.CARD_PLAYING, story, playCards));
-        eventBus.publish(dixitRoundCardPlayingEvents);
+        var dixitRoundCardPlayedEvents = mapToList(players, player -> new DixitRoundCardPlayedEvent(dixitId, rounds, player.getId(), RoundState.CARD_PLAYING, story, playCards));
+        eventBus.publish(dixitRoundCardPlayedEvents);
     }
 
-    private void mayPublishDixitRoundPlayerGuessingEvents(Dixit dixit) {
+    private void mayPublishDixitRoundStoryGuessedEvents(Dixit dixit) {
         RoundState roundState = dixit.getCurrentRoundState();
-        if (RoundState.PLAYER_GUESSING == roundState) {
+        if (RoundState.STORY_GUESSING == roundState) {
             String dixitId = dixit.getId();
             int rounds = dixit.getNumberOfRounds();
             var players = dixit.getPlayers();
             Story story = dixit.getCurrentStory();
             var playCards = dixit.getCurrentPlayCards();
             var guesses = dixit.getCurrentGuesses();
-            var dixitRoundPlayerGuessingEvents = mapToList(players, player -> new DixitRoundPlayerGuessingEvent(dixitId, rounds, player.getId(), roundState, story, playCards, guesses));
-            eventBus.publish(dixitRoundPlayerGuessingEvents);
+            var dixitRoundStoryGuessedEvents = mapToList(players, player -> new DixitRoundStoryGuessedEvent(dixitId, rounds, player.getId(), roundState, story, playCards, guesses));
+            eventBus.publish(dixitRoundStoryGuessedEvents);
         }
     }
 

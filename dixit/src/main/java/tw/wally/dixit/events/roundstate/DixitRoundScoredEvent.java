@@ -15,10 +15,10 @@ import static tw.wally.dixit.utils.StreamUtils.mapToList;
  */
 @Getter
 @NoArgsConstructor
-public class DixitRoundScoringEvent extends DixitRoundEvent {
+public class DixitRoundScoredEvent extends DixitRoundEvent {
     private Collection<Player> players;
 
-    public DixitRoundScoringEvent(String gameId, int rounds, String playerId, RoundState roundState, Collection<Player> players) {
+    public DixitRoundScoredEvent(String gameId, int rounds, String playerId, RoundState roundState, Collection<Player> players) {
         super(gameId, rounds, playerId, roundState);
         this.players = mapToList(players, this::renewPlayer);
     }
