@@ -72,7 +72,7 @@ public class DixitTest extends AbstractDixitTest {
 
     @Test
     public void GivenFirstRoundScored_WhenGameWithdrawsCards_ThenShouldSuccess() {
-        givenGameStartedAndRoundStateIsPlayerGuessing(5);
+        givenGameStartedAndRoundStateIsStoryGuessing(5);
         dixit.score();
 
         dixit.withdrawCards();
@@ -84,7 +84,7 @@ public class DixitTest extends AbstractDixitTest {
 
     @Test
     public void GivenFirstRoundScored_WhenSecondRoundStart_ThenEachPlayerShouldHaveSixCardsAndCurrentRoundShouldBeSecondRound() {
-        givenGameStartedAndRoundStateIsPlayerGuessing(6);
+        givenGameStartedAndRoundStateIsStoryGuessing(6);
         dixit.score();
         dixit.withdrawCards();
 
@@ -96,7 +96,7 @@ public class DixitTest extends AbstractDixitTest {
 
     @Test
     public void GivenGameScored_WhenOnePlayerAchievedWinningScore_ThenGameStateShouldBeOverAndShouldHaveOneWinner() {
-        givenGameStartedAndRoundStateIsPlayerGuessing(4);
+        givenGameStartedAndRoundStateIsStoryGuessing(4);
         var players = limit(dixit.getCurrentGuessers(), 1);
         makePlayersAchieveWinningScore(players);
 
@@ -107,7 +107,7 @@ public class DixitTest extends AbstractDixitTest {
 
     @Test
     public void GivenGameScored_WhenTwoPlayersAchievedWinningScore_ThenGameShouldHaveTwoWinners() {
-        givenGameStartedAndRoundStateIsPlayerGuessing(4);
+        givenGameStartedAndRoundStateIsStoryGuessing(4);
         var players = limit(dixit.getCurrentGuessers(), 2);
         makePlayersAchieveWinningScore(players);
 
@@ -116,7 +116,7 @@ public class DixitTest extends AbstractDixitTest {
         assertGameIsEndAndShouldHaveWinners(players);
     }
 
-    private void givenGameStartedAndRoundStateIsPlayerGuessing(int numberOfPlayers) {
+    private void givenGameStartedAndRoundStateIsStoryGuessing(int numberOfPlayers) {
         givenPlayersJoinGame(numberOfPlayers);
         dixit.start();
         tellStory();
@@ -190,5 +190,4 @@ public class DixitTest extends AbstractDixitTest {
         assertEquals(players.size(), winners.size());
         assertTrue(winners.containsAll(players));
     }
-
 }

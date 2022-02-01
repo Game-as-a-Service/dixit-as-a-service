@@ -224,15 +224,15 @@ public class DixitControllerTest extends AbstractDixitSpringBootTest {
 
     @DisplayName("Given 3 guessers played cards and dixit round is player guessing" +
             "When get dixit overview" +
-            "Then should respond {roundState = PLAYER_GUESSING, playCards = PlayCard[4]}")
+            "Then should respond {roundState = STORY_GUESSING, playCards = PlayCard[4]}")
     @Test
-    public void TestDixitOverviewOnPlayerGuessing() throws Exception {
+    public void TestDixitOverviewOnStoryGuessing() throws Exception {
         Dixit dixit = givenGuessersPlayedCardAndGetDixit(3);
 
         Player guesser = dixit.getCurrentGuessers().get(0);
         var dixitOverview = getDixitOverview(guesser);
 
-        assertEquals(RoundState.PLAYER_GUESSING, dixitOverview.roundState);
+        assertEquals(RoundState.STORY_GUESSING, dixitOverview.roundState);
         var playCards = mapToList(dixitOverview.playCards, PlayCardView::toEntity);
         assertEquals(4, playCards.size());
         assertTrue(playCards.contains(dixit.getCurrentStory().getPlayCard()));
@@ -278,11 +278,10 @@ public class DixitControllerTest extends AbstractDixitSpringBootTest {
     }
 
     private void assertCurrentRoundHasStoryWhichToldByStoryteller(Player expectedStoryteller) {
-        Story story = dixitRepository.findDixitById(DIXIT_ID)
+        Player actualStoryteller = dixitRepository.findDixitById(DIXIT_ID)
                 .map(Dixit::getCurrentStory)
-                .orElseThrow();
-        assertNotNull(story);
-        var actualStoryteller = story.getPlayer();
+                .orElseThrow()
+                .getPlayer();
         assertEquals(expectedStoryteller, actualStoryteller);
     }
 

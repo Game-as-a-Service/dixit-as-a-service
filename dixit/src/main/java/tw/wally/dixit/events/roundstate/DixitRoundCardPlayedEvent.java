@@ -18,11 +18,11 @@ import static tw.wally.dixit.utils.StreamUtils.mapToList;
  */
 @Getter
 @NoArgsConstructor
-public class DixitRoundCardPlayingEvent extends DixitRoundEvent {
+public class DixitRoundCardPlayedEvent extends DixitRoundEvent {
     private Story story;
     private Collection<PlayCard> playCards;
 
-    public DixitRoundCardPlayingEvent(String gameId, int rounds, String playerId, RoundState roundState, Story story, Collection<PlayCard> playCards) {
+    public DixitRoundCardPlayedEvent(String gameId, int rounds, String playerId, RoundState roundState, Story story, Collection<PlayCard> playCards) {
         super(gameId, rounds, playerId, roundState);
         this.story = new Story(story.getPhrase(), new PlayCard(renewPlayer(story.getPlayer()), new Card(story.getCardId(), EMPTY_CARD_IMAGE)));
         this.playCards = mapToList(playCards, this::renewPlayCard);

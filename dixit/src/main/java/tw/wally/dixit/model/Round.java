@@ -70,7 +70,7 @@ public class Round {
         validatePlayCard(playCard);
         playCards.put(playCard.getCardId(), playCard);
         if (playCards.size() == numberOfGuessers) {
-            roundState = RoundState.PLAYER_GUESSING;
+            roundState = RoundState.STORY_GUESSING;
         }
     }
 
@@ -105,7 +105,7 @@ public class Round {
 
     private void validateGuessAction(Guess guess) {
         Player guesser = guess.getGuesser();
-        validateRoundState(RoundState.PLAYER_GUESSING, () -> "When the round state isn't player guessing, guesser can't guess the story.");
+        validateRoundState(RoundState.STORY_GUESSING, () -> "When the round state isn't story guessing, guesser can't guess the story.");
         if (guesses.size() == numberOfGuessers) {
             throw new InvalidGameOperationException(format("Number of guesses can't be higher than %d.", numberOfGuessers));
         }

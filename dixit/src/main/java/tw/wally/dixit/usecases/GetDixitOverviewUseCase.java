@@ -55,14 +55,14 @@ public class GetDixitOverviewUseCase extends AbstractDixitUseCase {
         dixit.mayHaveCurrentStory().ifPresent(story -> playCards.add(rePlayCard(story.getPlayCard())));
         playCards.sort(comparing(PlayCard::getCardId));
         if (RoundState.CARD_PLAYING == currentRoundState
-                || RoundState.PLAYER_GUESSING == currentRoundState) {
+                || RoundState.STORY_GUESSING == currentRoundState) {
             presenter.showPlayCards(playCards);
         }
     }
 
     private void showGuesses(Dixit dixit, Presenter presenter) {
         RoundState currentRoundState = dixit.getCurrentRoundState();
-        if (RoundState.PLAYER_GUESSING == currentRoundState
+        if (RoundState.STORY_GUESSING == currentRoundState
                 || RoundState.SCORING == currentRoundState) {
             presenter.showGuesses(mapToList(dixit.getCurrentGuesses(), this::reGuess));
         }
