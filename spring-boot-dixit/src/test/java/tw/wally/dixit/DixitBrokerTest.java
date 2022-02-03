@@ -171,9 +171,9 @@ public class DixitBrokerTest extends AbstractDixitSpringBootTest {
         }).get(10, SECONDS);
 
         String playerId = player.getId();
-        String topic = format("%s/players/%s", BASE_DIXIT_EVENT_TOPICS.getOrDefault(eventClass, BASE_DIXIT_TOPIC), playerId);
+        String destination = format("%s/players/%s", BASE_DIXIT_EVENT_TOPICS.getOrDefault(eventClass, BASE_DIXIT_TOPIC), playerId);
         var dixitEventStompFrameHandler = new DixitEventStompFrameHandler<>(eventClass);
-        stompSession.subscribe(topic, dixitEventStompFrameHandler);
+        stompSession.subscribe(destination, dixitEventStompFrameHandler);
 
         dixitEventHandlers.computeIfAbsent(eventClass, dixitEventClass -> new HashMap<>(NUMBER_OF_PLAYERS))
                 .put(playerId, dixitEventStompFrameHandler);
@@ -197,7 +197,7 @@ public class DixitBrokerTest extends AbstractDixitSpringBootTest {
     }
 
     private void assertPlayerReceiveDixitRoundStoryToldEvent(Player storyteller,
-                                                                Player player, int currentRound) {
+                                                             Player player, int currentRound) {
         var dixitRoundStoryToldEvent = receiveEvent(player, DixitRoundStoryToldEvent.class);
         assertNotNull(dixitRoundStoryToldEvent);
         assertEquals(currentRound, dixitRoundStoryToldEvent.getRounds());
@@ -211,7 +211,7 @@ public class DixitBrokerTest extends AbstractDixitSpringBootTest {
     }
 
     private void assertPlayerReceiveDixitRoundCardPlayedEvent(Player player, Story story,
-                                                               Collection<PlayCard> playCards) {
+                                                              Collection<PlayCard> playCards) {
         var dixitRoundCardPlayedEvent = receiveEvent(player, DixitRoundCardPlayedEvent.class);
         assertNotNull(dixitRoundCardPlayedEvent);
         assertEquals(FIRST_ROUND, dixitRoundCardPlayedEvent.getRounds());
@@ -230,8 +230,8 @@ public class DixitBrokerTest extends AbstractDixitSpringBootTest {
     }
 
     private void assertPlayerReceiveDixitRoundStoryGuessedEvent(Player player, Story story,
-                                                                  Collection<PlayCard> playCards,
-                                                                  Collection<Guess> guesses) {
+                                                                Collection<PlayCard> playCards,
+                                                                Collection<Guess> guesses) {
         var dixitRoundStoryGuessedEvent = receiveEvent(player, DixitRoundStoryGuessedEvent.class);
         assertNotNull(dixitRoundStoryGuessedEvent);
         assertEquals(FIRST_ROUND, dixitRoundStoryGuessedEvent.getRounds());
