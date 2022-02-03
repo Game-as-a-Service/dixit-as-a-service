@@ -151,7 +151,7 @@ public class DixitBrokerTest extends AbstractDixitSpringBootTest {
         subscribeEvents(DixitGameOverEvent.class);
 
         Dixit dixit = givenAllGuessersPlayedCardAndGetDixit();
-        makePlayersAchieveWinningScore(dixit);
+        makePlayersAchieveWinningGoal(dixit);
         dixit = givenAllGuessersGuessedStoryAndGetDixit(dixit);
         var winners = dixit.getWinners();
         assertFalse(winners.isEmpty());
@@ -171,9 +171,9 @@ public class DixitBrokerTest extends AbstractDixitSpringBootTest {
         }).get(10, SECONDS);
 
         String playerId = player.getId();
-        String topic = format("%s/players/%s", BASE_DIXIT_EVENT_TOPICS.getOrDefault(eventClass, BASE_DIXIT_TOPIC), playerId);
+        String destination = format("%s/players/%s", BASE_DIXIT_EVENT_TOPICS.getOrDefault(eventClass, BASE_DIXIT_TOPIC), playerId);
         var dixitEventStompFrameHandler = new DixitEventStompFrameHandler<>(eventClass);
-        stompSession.subscribe(topic, dixitEventStompFrameHandler);
+        stompSession.subscribe(destination, dixitEventStompFrameHandler);
 
         dixitEventHandlers.computeIfAbsent(eventClass, dixitEventClass -> new HashMap<>(NUMBER_OF_PLAYERS))
                 .put(playerId, dixitEventStompFrameHandler);

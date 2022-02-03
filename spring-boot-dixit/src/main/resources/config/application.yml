@@ -11,3 +11,7 @@ dixit:
     uri: ${MONGO_URI:PLACEHOLDER}
   jwt:
     secret: ${JWT_SECRET_KEY:PLACEHOLDER}
+
+lobby:
+  service:
+    hostUrl: http://localhost:8080
