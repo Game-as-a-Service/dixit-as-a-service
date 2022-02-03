@@ -26,8 +26,10 @@ public class DixitController {
     private final GuessStoryUseCase guessStoryUseCase;
     private final GetDixitOverviewUseCase getDixitOverviewUseCase;
 
-    @PostMapping
-    public void createDixit(@RequestBody CreateDixitUseCase.Request request) {
+    @PostMapping("/{dixitId}")
+    public void createDixit(@PathVariable String dixitId,
+                            @RequestBody CreateDixitUseCase.Request request) {
+        request.gameId = dixitId;
         createDixitUseCase.execute(request);
     }
 

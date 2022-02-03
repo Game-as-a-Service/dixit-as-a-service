@@ -16,6 +16,7 @@ import tw.wally.dixit.usecases.TellStoryUseCase;
 
 import java.util.Collection;
 
+import static java.util.Collections.singletonList;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -52,13 +53,11 @@ public class AbstractDixitSpringBootTest extends AbstractSpringBootTest {
     }
 
     protected ResultActions createDixitWithPlayers(int numberOfPlayers) throws Exception {
-        var players = generate(numberOfPlayers, number -> new CreateDixitUseCase.Player(String.valueOf(number), DIXIT_PLAYER + number));
-        var dixitHost = players.get(0);
-        var dixitPlayers = skip(players, 1);
-        var gameSetting = new CreateDixitUseCase.GameSetting(DEFAULT_WINNING_SCORE);
-        var game = new CreateDixitUseCase.Game(DIXIT_ID, dixitHost, dixitPlayers, gameSetting);
-        var request = new CreateDixitUseCase.Request(ROOM_ID, game);
-        return mockMvc.perform(post(API_PREFIX)
+        var players = generate(numberOfPlayers, number -> new Player(String.valueOf(number), DIXIT_PLAYER + number));
+        Player dixitHost = players.get(0);
+        var options = singletonList(new CreateDixitUseCase.Option("winningScore", 25));
+        var request = new CreateDixitUseCase.Request(ROOM_ID, DIXIT_ID, dixitHost.getId(), players, options);
+        return mockMvc.perform(post(API_PREFIX + "/{dixitId}", DIXIT_ID)
                 .contentType(APPLICATION_JSON)
                 .content(toJson(request)));
     }
@@ -155,7 +154,7 @@ public class AbstractDixitSpringBootTest extends AbstractSpringBootTest {
     }
 
     protected void makePlayersAchieveWinningScore(Dixit dixit) {
-        makePlayersAchieveWinningScore(dixit,dixit.getPlayers());
+        makePlayersAchieveWinningScore(dixit, dixit.getPlayers());
     }
 
     protected void makePlayersAchieveWinningScore(Dixit dixit, Collection<Player> achievedVictoryConditionPlayers) {
