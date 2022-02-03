@@ -14,6 +14,6 @@ public class RestLobbyApiClient implements LobbyServiceDriver {
 
     @Override
     public void registerService(Registration registration) {
-        restTemplate.postForEntity(String.format("%s/register", API_PREFIX), registration, Object.class);
+        restTemplate.postForEntity(String.format("%s/games", API_PREFIX), registration, Object.class);
     }
 }

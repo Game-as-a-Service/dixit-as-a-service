@@ -20,7 +20,7 @@ public class DixitApplicationRunner implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         Registration registration = new Registration(MIN_NUMBER_OF_PLAYERS, MAX_NUMBER_OF_PLAYERS);
-        registration.addOption(new Registration.Option("winningGoal", "range", 25, 35, 5));
+        registration.addOption(new Registration.Option("winningScore", "range", 25, 35, 5));
         lobbyServiceDriver.registerService(registration);
     }
 }
