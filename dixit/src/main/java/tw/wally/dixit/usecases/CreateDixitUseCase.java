@@ -6,18 +6,15 @@ import lombok.NoArgsConstructor;
 import tw.wally.dixit.events.EventBus;
 import tw.wally.dixit.events.gamestate.DixitGameStartedEvent;
 import tw.wally.dixit.events.roundstate.DixitRoundStoryToldEvent;
-import tw.wally.dixit.model.Dixit;
-import tw.wally.dixit.model.GameState;
-import tw.wally.dixit.model.RoundState;
-import tw.wally.dixit.model.VictoryCondition;
+import tw.wally.dixit.model.*;
 import tw.wally.dixit.repositories.CardRepository;
 import tw.wally.dixit.repositories.DixitRepository;
 
 import javax.inject.Named;
 import java.util.Collection;
-import java.util.LinkedList;
 
 import static tw.wally.dixit.utils.StreamUtils.mapToList;
+import static tw.wally.dixit.utils.StreamUtils.toMap;
 
 /**
  * @author - wally55077@gmail.com
@@ -36,7 +33,7 @@ public class CreateDixitUseCase extends AbstractDixitUseCase {
     public void execute(Request request) {
         Dixit dixit = dixit(request);
 
-        players(request).forEach(dixit::join);
+        request.players.forEach(dixit::join);
         dixit.start();
 
         publishDixitGameStartedAndDixitRoundStoryToldEvents(dixit);
@@ -44,16 +41,9 @@ public class CreateDixitUseCase extends AbstractDixitUseCase {
     }
 
     public Dixit dixit(Request request) {
+        var options = toMap(request.options, Option::getName, Option::getValue);
         var cards = cardRepository.findAll();
-        var game = request.game;
-        return new Dixit(game.id, game.gameSetting.toVictoryCondition(), cards);
-    }
-
-    public Collection<tw.wally.dixit.model.Player> players(Request request) {
-        var game = request.game;
-        var players = new LinkedList<>(game.players);
-        players.addFirst(game.host);
-        return mapToList(players, Player::toPlayer);
+        return new Dixit(request.gameId, new VictoryCondition(options.get("winningScore")), cards);
     }
 
     private void publishDixitGameStartedAndDixitRoundStoryToldEvents(Dixit dixit) {
@@ -82,39 +72,17 @@ public class CreateDixitUseCase extends AbstractDixitUseCase {
     @AllArgsConstructor
     public static class Request {
         public String roomId;
-        public Game game;
-    }
-
-    @Getter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class Game {
-        public String id;
-        public Player host;
+        public String gameId;
+        public String hostId;
         public Collection<Player> players;
-        public GameSetting gameSetting;
+        public Collection<Option> options;
     }
 
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class Player {
-        public String id;
+    public static class Option {
         public String name;
-
-        private tw.wally.dixit.model.Player toPlayer() {
-            return new tw.wally.dixit.model.Player(id, name);
-        }
-    }
-
-    @Getter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class GameSetting {
-        public int winningScore;
-
-        private VictoryCondition toVictoryCondition() {
-            return new VictoryCondition(winningScore);
-        }
+        public int value;
     }
 }
