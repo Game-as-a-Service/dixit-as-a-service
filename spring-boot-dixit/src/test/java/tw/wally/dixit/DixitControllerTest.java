@@ -260,7 +260,7 @@ public class DixitControllerTest extends AbstractDixitSpringBootTest {
     @Test
     public void TestDixitOverDixitOverview() throws Exception {
         Dixit dixit = givenAllGuessersPlayedCardAndGetDixit();
-        makePlayersAchieveWinningGoal(dixit, limit(dixit.getCurrentGuessers(), 2));
+        makePlayersAchieveWinningScore(dixit, limit(dixit.getCurrentGuessers(), 2));
         dixit = givenAllGuessersGuessedStoryAndGetDixit(dixit);
 
         Player storyteller = dixit.getCurrentStoryteller();

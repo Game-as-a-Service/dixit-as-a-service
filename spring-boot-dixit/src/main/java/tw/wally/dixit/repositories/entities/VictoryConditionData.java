@@ -10,13 +10,13 @@ import tw.wally.dixit.model.VictoryCondition;
 @Getter
 @AllArgsConstructor
 public class VictoryConditionData {
-    public int winningGoal;
+    public int winningScore;
 
     public static VictoryConditionData toData(VictoryCondition victoryCondition) {
-        return new VictoryConditionData(victoryCondition.getWinningGoal());
+        return new VictoryConditionData(victoryCondition.getWinningScore());
     }
 
     public VictoryCondition toEntity() {
-        return new VictoryCondition(winningGoal);
+        return new VictoryCondition(winningScore);
     }
 }

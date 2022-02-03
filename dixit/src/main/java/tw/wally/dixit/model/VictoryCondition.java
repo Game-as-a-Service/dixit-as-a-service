@@ -14,21 +14,21 @@ import static java.util.Set.of;
 @Getter
 public class VictoryCondition {
 
-    private static final Set<Integer> WINNING_GOAL_RANGE = of(25, 30, 35);
-    private final int winningGoal;
+    private static final Set<Integer> WINNING_SCORE_RANGE = of(25, 30, 35);
+    private final int winningScore;
 
-    public VictoryCondition(int winningGoal) {
-        validateWinningGoal(winningGoal);
-        this.winningGoal = winningGoal;
+    public VictoryCondition(int winningScore) {
+        validateWinningScore(winningScore);
+        this.winningScore = winningScore;
     }
 
     public boolean isWinning(Player player) {
-        return player.getScore() >= winningGoal;
+        return player.getScore() >= winningScore;
     }
 
-    private void validateWinningGoal(int winningGoal) {
-        if (!WINNING_GOAL_RANGE.contains(winningGoal)) {
-            throw new InvalidGameOperationException(format("Winning goal should be %s", WINNING_GOAL_RANGE));
+    private void validateWinningScore(int winningScore) {
+        if (!WINNING_SCORE_RANGE.contains(winningScore)) {
+            throw new InvalidGameOperationException(format("Winning score should be %s", WINNING_SCORE_RANGE));
         }
     }
 

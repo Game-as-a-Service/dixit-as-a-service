@@ -19,13 +19,13 @@ public class DixitTest extends AbstractDixitTest {
 
     public static final String DIXIT_ID = "dixitId";
     public static final int DEFAULT_CARD_SIZE = 36;
-    public static final int DEFAULT_WINNING_GOAL = 30;
+    public static final int DEFAULT_WINNING_SCORE = 30;
     private Dixit dixit;
     private Map<Player, Card> cardOfPlayers;
 
     @BeforeEach
     public void beforeTest() {
-        this.dixit = new Dixit(DIXIT_ID, new VictoryCondition(DEFAULT_WINNING_GOAL), generateCards(DEFAULT_CARD_SIZE));
+        this.dixit = new Dixit(DIXIT_ID, new VictoryCondition(DEFAULT_WINNING_SCORE), generateCards(DEFAULT_CARD_SIZE));
         this.cardOfPlayers = new HashMap<>(Dixit.MAX_NUMBER_OF_PLAYERS);
     }
 
@@ -95,10 +95,10 @@ public class DixitTest extends AbstractDixitTest {
     }
 
     @Test
-    public void GivenGameScored_WhenOnePlayerAchievedWinningGoal_ThenGameStateShouldBeOverAndShouldHaveOneWinner() {
+    public void GivenGameScored_WhenOnePlayerAchievedWinningScore_ThenGameStateShouldBeOverAndShouldHaveOneWinner() {
         givenGameStartedAndRoundStateIsStoryGuessing(4);
         var players = limit(dixit.getCurrentGuessers(), 1);
-        makePlayersAchieveWinningGoal(players);
+        makePlayersAchieveWinningScore(players);
 
         dixit.score();
 
@@ -106,10 +106,10 @@ public class DixitTest extends AbstractDixitTest {
     }
 
     @Test
-    public void GivenGameScored_WhenTwoPlayersAchievedWinningGoal_ThenGameShouldHaveTwoWinners() {
+    public void GivenGameScored_WhenTwoPlayersAchievedWinningScore_ThenGameShouldHaveTwoWinners() {
         givenGameStartedAndRoundStateIsStoryGuessing(4);
         var players = limit(dixit.getCurrentGuessers(), 2);
-        makePlayersAchieveWinningGoal(players);
+        makePlayersAchieveWinningScore(players);
 
         dixit.score();
 
@@ -163,8 +163,8 @@ public class DixitTest extends AbstractDixitTest {
         return DEFAULT_CARD_SIZE - numberOfPlayers * NUMBER_OF_PLAYER_HAND_CARDS;
     }
 
-    private void makePlayersAchieveWinningGoal(Collection<Player> players) {
-        int scoreTimes = DEFAULT_WINNING_GOAL / GUESS_CORRECTLY_SCORE;
+    private void makePlayersAchieveWinningScore(Collection<Player> players) {
+        int scoreTimes = DEFAULT_WINNING_SCORE / GUESS_CORRECTLY_SCORE;
         for (Player player : players) {
             for (int currentTime = 0; currentTime < scoreTimes; currentTime++) {
                 player.addScore(GUESS_CORRECTLY_SCORE);

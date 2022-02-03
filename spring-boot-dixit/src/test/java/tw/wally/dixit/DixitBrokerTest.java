@@ -151,7 +151,7 @@ public class DixitBrokerTest extends AbstractDixitSpringBootTest {
         subscribeEvents(DixitGameOverEvent.class);
 
         Dixit dixit = givenAllGuessersPlayedCardAndGetDixit();
-        makePlayersAchieveWinningGoal(dixit);
+        makePlayersAchieveWinningScore(dixit);
         dixit = givenAllGuessersGuessedStoryAndGetDixit(dixit);
         var winners = dixit.getWinners();
         assertFalse(winners.isEmpty());
@@ -197,7 +197,7 @@ public class DixitBrokerTest extends AbstractDixitSpringBootTest {
     }
 
     private void assertPlayerReceiveDixitRoundStoryToldEvent(Player storyteller,
-                                                                Player player, int currentRound) {
+                                                             Player player, int currentRound) {
         var dixitRoundStoryToldEvent = receiveEvent(player, DixitRoundStoryToldEvent.class);
         assertNotNull(dixitRoundStoryToldEvent);
         assertEquals(currentRound, dixitRoundStoryToldEvent.getRounds());
@@ -211,7 +211,7 @@ public class DixitBrokerTest extends AbstractDixitSpringBootTest {
     }
 
     private void assertPlayerReceiveDixitRoundCardPlayedEvent(Player player, Story story,
-                                                               Collection<PlayCard> playCards) {
+                                                              Collection<PlayCard> playCards) {
         var dixitRoundCardPlayedEvent = receiveEvent(player, DixitRoundCardPlayedEvent.class);
         assertNotNull(dixitRoundCardPlayedEvent);
         assertEquals(FIRST_ROUND, dixitRoundCardPlayedEvent.getRounds());
@@ -230,8 +230,8 @@ public class DixitBrokerTest extends AbstractDixitSpringBootTest {
     }
 
     private void assertPlayerReceiveDixitRoundStoryGuessedEvent(Player player, Story story,
-                                                                  Collection<PlayCard> playCards,
-                                                                  Collection<Guess> guesses) {
+                                                                Collection<PlayCard> playCards,
+                                                                Collection<Guess> guesses) {
         var dixitRoundStoryGuessedEvent = receiveEvent(player, DixitRoundStoryGuessedEvent.class);
         assertNotNull(dixitRoundStoryGuessedEvent);
         assertEquals(FIRST_ROUND, dixitRoundStoryGuessedEvent.getRounds());

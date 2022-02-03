@@ -9,12 +9,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class VictoryConditionTest {
 
     @Test
-    public void WhenCreateVictoryConditionWithWinningGoalIs30_ThenShouldSuccess() {
+    public void WhenCreateVictoryConditionWithWinningScoreIs30_ThenShouldSuccess() {
         assertDoesNotThrow(() -> new VictoryCondition(30));
     }
 
     @Test
-    public void WhenCreateVictoryConditionWithInvalidWinningGoal_ThenShouldFail() {
+    public void WhenCreateVictoryConditionWithInvalidWinningScore_ThenShouldFail() {
         assertThrows(InvalidGameOperationException.class, () -> new VictoryCondition(22));
         assertThrows(InvalidGameOperationException.class, () -> new VictoryCondition(27));
         assertThrows(InvalidGameOperationException.class, () -> new VictoryCondition(32));
