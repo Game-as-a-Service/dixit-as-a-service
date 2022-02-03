@@ -9,17 +9,16 @@ import java.util.LinkedList;
 /**
  * @author - wally55077@gmail.com
  */
-@AllArgsConstructor
 public class Registration {
-    private final int minPlayers;
-    private final int maxPlayers;
-    private final Collection<Option> options;
+    private String name;
+    private String serviceHost;
+    private int minPlayers;
+    private int maxPlayers;
+    private Collection<Option> options;
 
-    public Registration() {
-        this(4, 6);
-    }
-
-    public Registration(int minPlayers, int maxPlayers) {
+    public Registration(String name, String serviceHost, int minPlayers, int maxPlayers) {
+        this.name = name;
+        this.serviceHost = serviceHost;
         this.minPlayers = minPlayers;
         this.maxPlayers = maxPlayers;
         this.options = new LinkedList<>();

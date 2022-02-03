@@ -7,6 +7,9 @@ jwt:
   secret: ${dixit.jwt.secret}
 
 dixit:
+  service:
+    name: dixit
+    host: ${DIXIT_SERVICE_HOST:PLACEHOLDER}
   mongodb:
     uri: ${MONGO_URI:PLACEHOLDER}
   jwt:
@@ -14,4 +17,4 @@ dixit:
 
 lobby:
   service:
-    hostUrl: http://localhost:8080
+    host: ${LOBBY_SERVICE_HOST:PLACEHOLDER}

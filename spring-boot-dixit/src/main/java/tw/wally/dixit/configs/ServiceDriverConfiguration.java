@@ -21,8 +21,8 @@ public class ServiceDriverConfiguration {
 
     @Bean
     public LobbyServiceDriver lobbyServiceDriver(RestTemplateFactory restTemplateFactory,
-                                                 @Value("${lobby.service.hostUrl}") String lobbyServiceHostUrl) {
-        var restTemplate = restTemplateFactory.create(lobbyServiceHostUrl);
+                                                 @Value("${lobby.service.host}") String lobbyServiceServiceHost) {
+        var restTemplate = restTemplateFactory.create(lobbyServiceServiceHost);
         return new RestLobbyApiClient(restTemplate);
     }
 }
