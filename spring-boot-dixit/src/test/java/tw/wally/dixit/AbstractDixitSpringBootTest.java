@@ -70,8 +70,8 @@ public class AbstractDixitSpringBootTest extends AbstractSpringBootTest {
     }
 
     protected ResultActions tellStory(int currentRound, Player player) throws Exception {
-        var handCard = getPlayCard(player);
-        var playerId = player.getId();
+        Card handCard = getPlayCard(player);
+        String playerId = player.getId();
         var request = new TellStoryUseCase.Request(DIXIT_ID, currentRound, PHRASE, playerId, handCard.getId());
         return mockMvc.perform(put(API_PREFIX + "/{dixitId}/rounds/{round}/players/{playerId}/story", DIXIT_ID, currentRound, playerId)
                 .contentType(APPLICATION_JSON)
@@ -98,7 +98,7 @@ public class AbstractDixitSpringBootTest extends AbstractSpringBootTest {
     }
 
     protected ResultActions playCard(int currentRound, Player player) throws Exception {
-        var handCard = getPlayCard(player);
+        Card handCard = getPlayCard(player);
         var playerId = player.getId();
         var request = new PlayCardUseCase.Request(DIXIT_ID, currentRound, playerId, handCard.getId());
         return mockMvc.perform(put(API_PREFIX + "/{dixitId}/rounds/{round}/players/{playerId}/playcard", DIXIT_ID, currentRound, playerId)

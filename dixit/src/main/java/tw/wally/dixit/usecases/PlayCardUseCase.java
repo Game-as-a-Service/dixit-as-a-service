@@ -27,7 +27,6 @@ public class PlayCardUseCase extends AbstractDixitUseCase {
     public void execute(Request request) {
         Dixit dixit = findDixit(request.gameId);
         validateRound(dixit, request.round);
-        validateStoryteller(request, dixit);
 
         playCard(request, dixit);
 
@@ -39,14 +38,11 @@ public class PlayCardUseCase extends AbstractDixitUseCase {
     private void playCard(Request request, Dixit dixit) {
         Player guesser = dixit.getPlayer(request.playerId);
         Card card = guesser.playCard(request.cardId);
-        dixit.playCard(guesser, card);
-    }
-
-    private void validateStoryteller(Request request, Dixit dixit) {
-        Player storyteller = dixit.getCurrentStoryteller();
-        Player player = dixit.getPlayer(request.playerId);
-        if (storyteller.equals(player)) {
-            throw new InvalidGameOperationException("Storyteller can't play card in the CardPlaying");
+        try {
+            dixit.playCard(guesser, card);
+        } catch (InvalidGameOperationException e) {
+            guesser.addHandCard(card);
+            throw e;
         }
     }
 

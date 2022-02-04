@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import tw.wally.dixit.events.EventBus;
 import tw.wally.dixit.events.roundstate.DixitRoundCardPlayedEvent;
+import tw.wally.dixit.exceptions.InvalidGameOperationException;
 import tw.wally.dixit.model.*;
 import tw.wally.dixit.repositories.DixitRepository;
 
@@ -35,7 +36,12 @@ public class TellStoryUseCase extends AbstractDixitUseCase {
     private void tellStory(Request request, Dixit dixit) {
         Player storyteller = dixit.getPlayer(request.playerId);
         Card card = storyteller.playCard(request.cardId);
-        dixit.tellStory(request.phrase, storyteller, card);
+        try {
+            dixit.tellStory(request.phrase, storyteller, card);
+        } catch (InvalidGameOperationException e) {
+            storyteller.addHandCard(card);
+            throw e;
+        }
     }
 
     private void publishDixitRoundCardPlayedEvents(Dixit dixit) {

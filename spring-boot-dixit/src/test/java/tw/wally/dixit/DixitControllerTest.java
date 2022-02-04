@@ -14,13 +14,12 @@ import tw.wally.dixit.utils.FakeLobbyServiceDriver;
 import tw.wally.dixit.utils.FakeTokenService;
 import tw.wally.dixit.views.*;
 
-import java.util.Collection;
-
+import static java.util.function.Function.identity;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static tw.wally.dixit.utils.StreamUtils.limit;
-import static tw.wally.dixit.utils.StreamUtils.mapToList;
+import static tw.wally.dixit.model.Dixit.NUMBER_OF_PLAYER_HAND_CARDS;
+import static tw.wally.dixit.utils.StreamUtils.*;
 
 public class DixitControllerTest extends AbstractDixitSpringBootTest {
 
@@ -63,23 +62,27 @@ public class DixitControllerTest extends AbstractDixitSpringBootTest {
     @Test
     public void GivenDixitStarted_WhenStorytellerTellStory_ThenCurrentRoundShouldHaveStory() throws Exception {
         Dixit dixit = createDixitWithPlayersAndGet(4);
-        assertNull(dixit.getRound().getStory());
+        assertFalse(dixit.mayHaveCurrentStory().isPresent());
 
         var storyteller = dixit.getCurrentStoryteller();
         tellStory(dixit.getNumberOfRounds(), storyteller)
                 .andExpect(status().isOk());
 
-        assertCurrentRoundHasStoryWhichToldByStoryteller(storyteller);
+        Dixit actualDixit = dixitRepository.findDixitById(DIXIT_ID).orElseThrow();
+        assertCurrentRoundHasStoryWhichToldByStoryteller(actualDixit);
     }
 
     @Test
     public void GivenDixitStarted_WhenGuesserTellStory_ThenShouldRespondBadRequest() throws Exception {
         Dixit dixit = createDixitWithPlayersAndGet(5);
-        assertNull(dixit.getRound().getStory());
+        assertFalse(dixit.mayHaveCurrentStory().isPresent());
 
         Player guesser = dixit.getCurrentGuessers().get(0);
         tellStory(dixit.getNumberOfRounds(), guesser)
                 .andExpect(status().isBadRequest());
+
+        Player actualGuesser = dixitRepository.findDixitById(DIXIT_ID).map(Dixit::getCurrentGuessers).orElseThrow().get(0);
+        assertEquals(NUMBER_OF_PLAYER_HAND_CARDS, actualGuesser.getHandCards().size());
     }
 
     @Test
@@ -100,7 +103,9 @@ public class DixitControllerTest extends AbstractDixitSpringBootTest {
         var guessers = limit(dixit.getCurrentGuessers(), 2);
         eachGuesserPlayCard(currentRound, guessers);
 
-        assertCurrentRoundHasCardsWhichPlayedByGuessers(guessers);
+        Dixit actualDixit = dixitRepository.findDixitById(DIXIT_ID)
+                .orElseThrow();
+        assertCurrentRoundHasCardsWhichPlayedByGuessers(actualDixit);
     }
 
     @Test
@@ -111,6 +116,10 @@ public class DixitControllerTest extends AbstractDixitSpringBootTest {
         Player storyteller = dixit.getCurrentStoryteller();
         playCard(currentRound, storyteller)
                 .andExpect(status().isBadRequest());
+        Player actualStoryteller = dixitRepository.findDixitById(DIXIT_ID)
+                .map(Dixit::getCurrentStoryteller)
+                .orElseThrow();
+        assertEquals(NUMBER_OF_PLAYER_HAND_CARDS - 1, actualStoryteller.getHandCards().size());
     }
 
     @Test
@@ -131,7 +140,9 @@ public class DixitControllerTest extends AbstractDixitSpringBootTest {
         var guessers = limit(dixit.getCurrentGuessers(), 2);
         eachGuesserGuessStory(currentRound, guessers);
 
-        assertCurrentRoundHasGuessesWhichGuessedByGuessers(guessers);
+        Dixit actualDixit = dixitRepository.findDixitById(DIXIT_ID)
+                .orElseThrow();
+        assertCurrentRoundHasGuessesWhichGuessedByGuessers(actualDixit);
     }
 
     @Test
@@ -285,29 +296,33 @@ public class DixitControllerTest extends AbstractDixitSpringBootTest {
                 .andExpect(status().isOk()), DixitOverview.class);
     }
 
-    private void assertCurrentRoundHasStoryWhichToldByStoryteller(Player expectedStoryteller) {
-        Player actualStoryteller = dixitRepository.findDixitById(DIXIT_ID)
-                .map(Dixit::getCurrentStory)
-                .orElseThrow()
-                .getPlayer();
-        assertEquals(expectedStoryteller, actualStoryteller);
+    private void assertCurrentRoundHasStoryWhichToldByStoryteller(Dixit dixit) {
+        Player expectedStoryteller = dixit.getCurrentStoryteller();
+        Story story = dixit.getCurrentStory();
+        Player actualStoryteller = story.getPlayer();
+        assertSame(expectedStoryteller, actualStoryteller);
+        assertEquals(NUMBER_OF_PLAYER_HAND_CARDS - 1, expectedStoryteller.getHandCards().size());
+        assertEquals(NUMBER_OF_PLAYER_HAND_CARDS - 1, actualStoryteller.getHandCards().size());
     }
 
-    private void assertCurrentRoundHasCardsWhichPlayedByGuessers(Collection<Player> expectedGuessers) {
-        var playCards = dixitRepository.findDixitById(DIXIT_ID)
-                .map(Dixit::getCurrentPlayCards)
-                .orElseThrow();
-        assertEquals(playCards.size(), expectedGuessers.size());
-        var actualGuessers = mapToList(playCards, PlayCard::getPlayer);
-        assertEqualsIgnoreOrder(expectedGuessers, actualGuessers);
+    private void assertCurrentRoundHasCardsWhichPlayedByGuessers(Dixit dixit) {
+        var playCards = dixit.getCurrentPlayCards();
+        var expectedPlayers = limit(dixit.getCurrentGuessers(), playCards.size());
+        var actualPlayers = toMap(playCards, playCard -> playCard.getPlayer().getId(), PlayCard::getPlayer);
+        expectedPlayers.forEach(expectedPlayer -> assertSame(expectedPlayer, actualPlayers.get(expectedPlayer.getId())));
+
+        expectedPlayers.forEach(player -> assertEquals(NUMBER_OF_PLAYER_HAND_CARDS - 1, player.getHandCards().size()));
+        actualPlayers.values().forEach(player -> assertEquals(NUMBER_OF_PLAYER_HAND_CARDS - 1, player.getHandCards().size()));
     }
 
-    private void assertCurrentRoundHasGuessesWhichGuessedByGuessers(Collection<Player> expectedGuessers) {
-        var guesses = dixitRepository.findDixitById(DIXIT_ID)
-                .map(Dixit::getCurrentGuesses)
-                .orElseThrow();
-        assertEquals(guesses.size(), expectedGuessers.size());
-        var actualGuessers = mapToList(guesses, Guess::getGuesser);
-        assertEqualsIgnoreOrder(expectedGuessers, actualGuessers);
+    private void assertCurrentRoundHasGuessesWhichGuessedByGuessers(Dixit dixit) {
+        var guesses = dixit.getCurrentGuesses();
+        var expectedGuessers = limit(dixit.getCurrentGuessers(), guesses.size());
+        var actualGuessers = toMap(guesses, guess -> guess.getGuesser().getId(), Guess::getGuesser);
+        expectedGuessers.forEach(expectedGuesser -> assertSame(expectedGuesser, actualGuessers.get(expectedGuesser.getId())));
+
+        var expectedPlayers = mapToList(guesses, Guess::getPlayCardPlayer);
+        var actualPlayers = toMap(dixit.getPlayers(), Player::getId, identity());
+        expectedPlayers.forEach(expectedPlayer -> assertSame(expectedPlayer, actualPlayers.get(expectedPlayer.getId())));
     }
 }

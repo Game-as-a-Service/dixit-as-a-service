@@ -54,7 +54,6 @@ public class RoundTest extends AbstractDixitTest {
         Player guesser = guessers.get(0);
 
         assertThrows(InvalidGameOperationException.class, () -> tellStory(guesser));
-        assertEquals(NUMBER_OF_PLAYER_HAND_CARDS, guesser.getHandCards().size());
     }
 
     @Test
@@ -62,8 +61,6 @@ public class RoundTest extends AbstractDixitTest {
         tellStory();
 
         assertThrows(InvalidGameStateException.class, this::tellStory);
-        int expectedHandCards = NUMBER_OF_PLAYER_HAND_CARDS - 1;
-        assertEquals(expectedHandCards, storyteller.getHandCards().size());
     }
 
     @Test
@@ -82,8 +79,6 @@ public class RoundTest extends AbstractDixitTest {
         playCard(guesser1);
 
         assertThrows(InvalidGameOperationException.class, () -> playCard(guesser1));
-        int expectedHandCards = NUMBER_OF_PLAYER_HAND_CARDS - 1;
-        assertEquals(expectedHandCards, guesser1.getHandCards().size());
     }
 
     @Test
@@ -92,8 +87,6 @@ public class RoundTest extends AbstractDixitTest {
 
         Player guesser1 = guessers.get(0);
         assertThrows(InvalidGameStateException.class, () -> playCard(guesser1));
-        int expectedHandCards = NUMBER_OF_PLAYER_HAND_CARDS - 1;
-        assertEquals(expectedHandCards, guesser1.getHandCards().size());
     }
 
     @Test
