@@ -33,6 +33,7 @@ public class DixitEventStompFrameHandler<T> implements StompFrameHandler {
     @Override
     public void handleFrame(StompHeaders stompHeaders, Object o) {
         if (o != null && o.getClass() == tClass) {
+            this.blockingQueue.pollLast();
             this.blockingQueue.add((T) o);
         }
     }
