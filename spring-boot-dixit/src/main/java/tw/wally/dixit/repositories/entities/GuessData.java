@@ -11,19 +11,15 @@ import tw.wally.dixit.model.Player;
 @Getter
 @AllArgsConstructor
 public class GuessData {
-    private final PlayerData guesser;
+    private final String guesserId;
     private final PlayCardData playCard;
-
-    public String getGuesserId() {
-        return guesser.getId();
-    }
 
     public String getPlaycardPlayerId() {
         return playCard.getPlayerId();
     }
 
     public static GuessData toData(Guess guess) {
-        return new GuessData(PlayerData.toData(guess.getGuesser()), PlayCardData.toData(guess.getPlayCard()));
+        return new GuessData(guess.getGuesser().getId(), PlayCardData.toData(guess.getPlayCard()));
     }
 
     public Guess toEntity(Player guesser, Player playcardPlayer) {

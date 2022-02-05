@@ -7,14 +7,12 @@ import tw.wally.dixit.exceptions.InvalidGameOperationException;
 import tw.wally.dixit.exceptions.InvalidGameStateException;
 import tw.wally.dixit.exceptions.NotFoundException;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Supplier;
 
 import static java.lang.String.format;
 import static java.util.List.copyOf;
+import static java.util.Optional.ofNullable;
 import static tw.wally.dixit.utils.StreamUtils.*;
 
 /**
@@ -33,7 +31,7 @@ public class Round {
     private final List<Player> guessers;
     private Story story;
     private final Map<Integer, PlayCard> playCards;
-    private final Map<Player, Guess> guesses;
+    private final Map<String, Guess> guesses;
 
     public Round(Player storyteller, List<Player> guessers) {
         this.roundState = RoundState.STORY_TELLING;
@@ -88,7 +86,7 @@ public class Round {
     public void guessStory(Guess guess) {
         validateGuessStoryAction(guess);
         Player guesser = guess.getGuesser();
-        guesses.put(guesser, guess);
+        guesses.put(guesser.getId(), guess);
         if (guesses.size() == numberOfGuessers) {
             roundState = RoundState.SCORING;
         }
@@ -101,7 +99,7 @@ public class Round {
         if (!guessers.contains(guesser)) {
             throw new InvalidGameOperationException(format("Player: %s is not a guesser.", guesserName));
         }
-        if (guesses.containsKey(guesser)) {
+        if (guesses.containsKey(guesser.getId())) {
             throw new InvalidGameOperationException(format("Guesser: %s can't guess the story twice in same round.", guesserName));
         }
         if (guesses.size() == numberOfGuessers) {
@@ -142,6 +140,10 @@ public class Round {
                 .map(Guess::getPlayCardPlayer)
                 .filter(player -> !storyteller.equals(player))
                 .forEach(guesser -> guesser.addScore(BONUS_SCORE));
+    }
+
+    public Optional<Story> mayHaveStory() {
+        return ofNullable(story);
     }
 
     public PlayCard getPlayCard(int cardId) {
