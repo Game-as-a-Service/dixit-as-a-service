@@ -7,7 +7,6 @@ import org.springframework.messaging.simp.stomp.StompHeaders;
 import java.lang.reflect.Type;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingDeque;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
@@ -17,11 +16,11 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 public class DixitEventStompFrameHandler<T> implements StompFrameHandler {
 
     private final Class<T> tClass;
-    private final LinkedBlockingDeque<T> blockingQueue;
+    private final BlockingQueue<T> blockingQueue;
 
     public DixitEventStompFrameHandler(Class<T> tClass) {
         this.tClass = tClass;
-        this.blockingQueue = new LinkedBlockingDeque<>(1);
+        this.blockingQueue = new ArrayBlockingQueue<>(1);
     }
 
     @Override
@@ -33,13 +32,13 @@ public class DixitEventStompFrameHandler<T> implements StompFrameHandler {
     @Override
     public void handleFrame(StompHeaders stompHeaders, Object o) {
         if (o != null && o.getClass() == tClass) {
-            this.blockingQueue.pollLast();
+            this.blockingQueue.clear();
             this.blockingQueue.add((T) o);
         }
     }
 
     @SneakyThrows
     public T getPayload() {
-        return this.blockingQueue.pollLast(10, SECONDS);
+        return this.blockingQueue.poll(1, SECONDS);
     }
 }
