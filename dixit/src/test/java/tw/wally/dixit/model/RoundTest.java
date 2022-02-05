@@ -54,7 +54,6 @@ public class RoundTest extends AbstractDixitTest {
         Player guesser = guessers.get(0);
 
         assertThrows(InvalidGameOperationException.class, () -> tellStory(guesser));
-        assertEquals(NUMBER_OF_PLAYER_HAND_CARDS, guesser.getHandCards().size());
     }
 
     @Test
@@ -62,8 +61,6 @@ public class RoundTest extends AbstractDixitTest {
         tellStory();
 
         assertThrows(InvalidGameStateException.class, this::tellStory);
-        int expectedHandCards = NUMBER_OF_PLAYER_HAND_CARDS - 1;
-        assertEquals(expectedHandCards, storyteller.getHandCards().size());
     }
 
     @Test
@@ -82,8 +79,6 @@ public class RoundTest extends AbstractDixitTest {
         playCard(guesser1);
 
         assertThrows(InvalidGameOperationException.class, () -> playCard(guesser1));
-        int expectedHandCards = NUMBER_OF_PLAYER_HAND_CARDS - 1;
-        assertEquals(expectedHandCards, guesser1.getHandCards().size());
     }
 
     @Test
@@ -92,8 +87,6 @@ public class RoundTest extends AbstractDixitTest {
 
         Player guesser1 = guessers.get(0);
         assertThrows(InvalidGameStateException.class, () -> playCard(guesser1));
-        int expectedHandCards = NUMBER_OF_PLAYER_HAND_CARDS - 1;
-        assertEquals(expectedHandCards, guesser1.getHandCards().size());
     }
 
     @Test
@@ -205,20 +198,19 @@ public class RoundTest extends AbstractDixitTest {
 
     private void tellStory(Player player) {
         Card card = getRandomCard(player);
-        currentRound.tellStory(new Story(DIXIT_PHRASE, new PlayCard(player, card)));
+        currentRound.tellStory(DIXIT_PHRASE, player.getId(), card.getId());
         cardOfPlayers.put(player, card);
     }
 
     private void playCard(Player player) {
         Card card = getRandomCard(player);
-        currentRound.playCard(new PlayCard(player, card));
+        currentRound.playCard(player.getId(), card.getId());
         cardOfPlayers.put(player, card);
     }
 
     private Card getRandomCard(Player player) {
         var handCards = player.getHandCards();
-        Card card = handCards.get(new Random().nextInt(handCards.size()));
-        return player.playCard(card.getId());
+        return handCards.get(new Random().nextInt(handCards.size()));
     }
 
     private void guessStory(Collection<Player> guessers, Player playerWhoisGuessed) {
@@ -226,9 +218,7 @@ public class RoundTest extends AbstractDixitTest {
     }
 
     private void guessStory(Player guesser, Player playerWhoBeGuessed) {
-        int cardId = cardOfPlayers.get(playerWhoBeGuessed).getId();
-        PlayCard playCard = currentRound.getPlayCard(cardId);
-        currentRound.guessStory(new Guess(guesser, playCard));
+        currentRound.guessStory(guesser.getId(), cardOfPlayers.get(playerWhoBeGuessed).getId());
     }
 
     private void givenRoundStateIsStoryGuessing() {

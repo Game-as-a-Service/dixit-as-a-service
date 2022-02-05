@@ -138,25 +138,24 @@ public class DixitTest extends AbstractDixitTest {
     private void tellStory() {
         Player player = dixit.getCurrentStoryteller();
         Card card = getRandomCard(player);
-        dixit.tellStory(DIXIT_PHRASE, player, card);
+        dixit.tellStory(DIXIT_PHRASE, player.getId(), card.getId());
         cardOfPlayers.put(player, card);
     }
 
     private void playCard(Player player) {
         Card card = getRandomCard(player);
-        dixit.playCard(player, card);
+        dixit.playCard(player.getId(), card.getId());
     }
 
     private Card getRandomCard(Player player) {
         var handCards = player.getHandCards();
-        Card card = handCards.get(new Random().nextInt(handCards.size()));
-        return player.playCard(card.getId());
+        return handCards.get(new Random().nextInt(handCards.size()));
     }
 
     private void guessStory(Player guesser, Player playerWhoBeGuessed) {
         int cardId = cardOfPlayers.get(playerWhoBeGuessed).getId();
         PlayCard playCard = dixit.getRound().getPlayCard(cardId);
-        dixit.guessStory(guesser, playCard);
+        dixit.guessStory(guesser.getId(), playCard.getCardId());
     }
 
     private int getCurrentDeckSizeAfterDealCard(int numberOfPlayers) {

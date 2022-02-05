@@ -14,10 +14,6 @@ public class StoryData {
     private final String phrase;
     private final PlayCardData playCard;
 
-    public String getStorytellerId() {
-        return playCard.getPlayerId();
-    }
-
     public static StoryData toData(Story story) {
         return new StoryData(story.getPhrase(), PlayCardData.toData(story.getPlayCard()));
     }

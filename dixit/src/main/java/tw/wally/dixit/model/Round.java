@@ -7,15 +7,12 @@ import tw.wally.dixit.exceptions.InvalidGameOperationException;
 import tw.wally.dixit.exceptions.InvalidGameStateException;
 import tw.wally.dixit.exceptions.NotFoundException;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Supplier;
 
 import static java.lang.String.format;
-import static java.util.Arrays.asList;
 import static java.util.List.copyOf;
+import static java.util.Optional.ofNullable;
 import static tw.wally.dixit.utils.StreamUtils.*;
 
 /**
@@ -34,7 +31,7 @@ public class Round {
     private final List<Player> guessers;
     private Story story;
     private final Map<Integer, PlayCard> playCards;
-    private final Map<Player, Guess> guesses;
+    private final Map<String, Guess> guesses;
 
     public Round(Player storyteller, List<Player> guessers) {
         this.roundState = RoundState.STORY_TELLING;
@@ -45,83 +42,74 @@ public class Round {
         this.guesses = new HashMap<>(numberOfGuessers);
     }
 
-    public void tellStory(Story story) {
-        validateTellStoryAction(story);
-        this.story = story;
+    public void tellStory(String phrase, String storytellerId, int cardId) {
+        Player storyteller = getPlayer(storytellerId);
+        validateTellStoryAction(storyteller);
+        this.story = new Story(phrase, new PlayCard(storyteller, storyteller.playCard(cardId)));
         roundState = RoundState.CARD_PLAYING;
     }
 
-    private void validateTellStoryAction(Story story) {
-        Player storyteller = story.getPlayer();
-        Card handCard = story.getCard();
-        validateRoundState(RoundState.STORY_TELLING, () -> "When the round state isn't story telling, storyteller can't tell the story.",
-                () -> storyteller.addHandCard(handCard));
-        if (this.story != null) {
-            storyteller.addHandCard(handCard);
-            throw new InvalidGameOperationException("Story has existed, storyteller can't tell the story again.");
+    private void validateTellStoryAction(Player player) {
+        validateRoundState(RoundState.STORY_TELLING, () -> "When the round state isn't story telling, storyteller can't tell the story.");
+        String playerName = player.getName();
+        if (!this.storyteller.equals(player)) {
+            throw new InvalidGameOperationException(format("Player: %s is not a storyteller.", playerName));
         }
-        if (!this.storyteller.equals(story.getPlayer())) {
-            storyteller.addHandCard(handCard);
-            throw new InvalidGameOperationException("Guesser can't tell the story.");
+        if (this.story != null) {
+            throw new InvalidGameOperationException(format("Player: %s can't tell the story twice in same round.", playerName));
         }
     }
 
-    public void playCard(PlayCard playCard) {
-        validatePlayCard(playCard);
-        playCards.put(playCard.getCardId(), playCard);
+    public void playCard(String guesserId, int cardId) {
+        Player guesser = getPlayer(guesserId);
+        validatePlayCardAction(guesser);
+        playCards.put(cardId, new PlayCard(guesser, guesser.playCard(cardId)));
         if (playCards.size() == numberOfGuessers) {
             roundState = RoundState.STORY_GUESSING;
         }
     }
 
-    private void validatePlayCard(PlayCard playCard) {
-        Player cardPlayer = playCard.getPlayer();
-        Card handCard = playCard.getCard();
-        validateRoundState(RoundState.CARD_PLAYING, () -> "When the round state isn't card playing, guesser can't play the card.",
-                () -> cardPlayer.addHandCard(handCard));
+    private void validatePlayCardAction(Player player) {
+        validateRoundState(RoundState.CARD_PLAYING, () -> "When the round state isn't card playing, guesser can't play the card.");
+        String playerName = player.getName();
+        if (!guessers.contains(player)) {
+            throw new InvalidGameOperationException(format("Player: %s is not a guesser.", playerName));
+        }
+        if (contains(playCards.values(), card -> card.getPlayer().equals(player))) {
+            throw new InvalidGameOperationException(format("Player: %s can't play the card twice in same round.", playerName));
+        }
         if (playCards.size() == numberOfGuessers) {
-            cardPlayer.addHandCard(handCard);
             throw new InvalidGameOperationException(format("Number of playCards can't be higher than %d.", numberOfGuessers));
-        }
-        String cardPlayerName = cardPlayer.getName();
-        if (!guessers.contains(cardPlayer)) {
-            cardPlayer.addHandCard(handCard);
-            throw new InvalidGameOperationException(format("Player: %s is not a guesser.", cardPlayerName));
-        }
-        if (contains(playCards.values(), card -> card.getPlayer().equals(cardPlayer))) {
-            cardPlayer.addHandCard(handCard);
-            throw new InvalidGameOperationException(format("Player: %s can't play the card twice in same round.", cardPlayerName));
         }
     }
 
-    public void guessStory(Guess guess) {
-        validateGuessAction(guess);
-        Player guesser = guess.getGuesser();
-        guesses.put(guesser, guess);
+    public void guessStory(String guesserId, int playCardId) {
+        Player guesser = getPlayer(guesserId);
+        validateGuessStoryAction(guesser);
+        PlayCard playCard = getPlayCard(playCardId);
+        guesses.put(guesserId, new Guess(guesser, playCard));
         if (guesses.size() == numberOfGuessers) {
             roundState = RoundState.SCORING;
         }
     }
 
-    private void validateGuessAction(Guess guess) {
-        Player guesser = guess.getGuesser();
+    private void validateGuessStoryAction(Player guesser) {
         validateRoundState(RoundState.STORY_GUESSING, () -> "When the round state isn't story guessing, guesser can't guess the story.");
-        if (guesses.size() == numberOfGuessers) {
-            throw new InvalidGameOperationException(format("Number of guesses can't be higher than %d.", numberOfGuessers));
-        }
         String guesserName = guesser.getName();
         if (!guessers.contains(guesser)) {
             throw new InvalidGameOperationException(format("Player: %s is not a guesser.", guesserName));
         }
-        if (guesses.containsKey(guesser)) {
+        if (guesses.containsKey(guesser.getId())) {
             throw new InvalidGameOperationException(format("Guesser: %s can't guess the story twice in same round.", guesserName));
+        }
+        if (guesses.size() == numberOfGuessers) {
+            throw new InvalidGameOperationException(format("Number of guesses can't be higher than %d.", numberOfGuessers));
         }
     }
 
     public void score() {
         validateRoundState(RoundState.SCORING, () -> "When the round state isn't scoring, Round can't score.");
-        var numberOfCorrectGuessers =
-                count(guesses.values(), guess -> storyteller.equals(guess.getPlayCardPlayer()));
+        var numberOfCorrectGuessers = count(guesses.values(), guess -> storyteller.equals(guess.getPlayCardPlayer()));
         if (numberOfCorrectGuessers == numberOfGuessers) {
             guessers.forEach(guesser -> guesser.addScore(NORMAL_SCORE));
         } else if (numberOfCorrectGuessers == 0) {
@@ -134,9 +122,8 @@ public class Round {
         }
     }
 
-    private void validateRoundState(RoundState expectedState, Supplier<String> errorMessageSupplier, Runnable... actionsBeforeErrorThrow) {
+    private void validateRoundState(RoundState expectedState, Supplier<String> errorMessageSupplier) {
         if (expectedState != roundState) {
-            asList(actionsBeforeErrorThrow).forEach(Runnable::run);
             throw new InvalidGameStateException(errorMessageSupplier.get());
         }
     }
@@ -150,10 +137,22 @@ public class Round {
 
     private void scoreBonusGuessers() {
         guesses.values().stream()
-                .map(Guess::getPlayCard)
-                .map(PlayCard::getPlayer)
+                .map(Guess::getPlayCardPlayer)
                 .filter(player -> !storyteller.equals(player))
                 .forEach(guesser -> guesser.addScore(BONUS_SCORE));
+    }
+
+    public Optional<Story> mayHaveStory() {
+        return ofNullable(story);
+    }
+
+    public Player getPlayer(String playerId) {
+        if (storyteller.getId().equals(playerId)) {
+            return storyteller;
+        } else {
+            return findFirst(guessers, guesser -> guesser.getId().equals(playerId))
+                    .orElseThrow(() -> new NotFoundException(format("Player: %s not found", playerId)));
+        }
     }
 
     public PlayCard getPlayCard(int cardId) {
