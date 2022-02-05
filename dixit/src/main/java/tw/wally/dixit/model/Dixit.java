@@ -91,16 +91,16 @@ public class Dixit {
         round = new Round(storyteller, guessers);
     }
 
-    public void tellStory(String phrase, Player storyteller, Card card) {
-        getRound().tellStory(new Story(phrase, new PlayCard(storyteller, card)));
+    public void tellStory(String phrase, String storytellerId, int cardId) {
+        getRound().tellStory(phrase, storytellerId, cardId);
     }
 
-    public void playCard(Player player, Card card) {
-        getRound().playCard(new PlayCard(player, card));
+    public void playCard(String playerId, int cardId) {
+        getRound().playCard(playerId, cardId);
     }
 
-    public void guessStory(Player guesser, PlayCard playCard) {
-        getRound().guessStory(new Guess(guesser, playCard));
+    public void guessStory(String guesserId, int playCardId) {
+        getRound().guessStory(guesserId, playCardId);
     }
 
     public void score() {
@@ -147,10 +147,6 @@ public class Dixit {
     public Player getPlayer(String playerId) {
         return findFirst(players, player -> player.getId().equals(playerId))
                 .orElseThrow(() -> new NotFoundException(format("Player: %s not found", playerId)));
-    }
-
-    public PlayCard getPlayCard(int cardId) {
-        return getRound().getPlayCard(cardId);
     }
 
     public Round getRound() {

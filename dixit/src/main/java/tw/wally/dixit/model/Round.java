@@ -42,15 +42,15 @@ public class Round {
         this.guesses = new HashMap<>(numberOfGuessers);
     }
 
-    public void tellStory(Story story) {
-        validateTellStoryAction(story);
-        this.story = story;
+    public void tellStory(String phrase, String storytellerId, int cardId) {
+        Player storyteller = getPlayer(storytellerId);
+        validateTellStoryAction(storyteller);
+        this.story = new Story(phrase, new PlayCard(storyteller, storyteller.playCard(cardId)));
         roundState = RoundState.CARD_PLAYING;
     }
 
-    private void validateTellStoryAction(Story story) {
+    private void validateTellStoryAction(Player player) {
         validateRoundState(RoundState.STORY_TELLING, () -> "When the round state isn't story telling, storyteller can't tell the story.");
-        Player player = story.getPlayer();
         String playerName = player.getName();
         if (!this.storyteller.equals(player)) {
             throw new InvalidGameOperationException(format("Player: %s is not a storyteller.", playerName));
@@ -60,17 +60,17 @@ public class Round {
         }
     }
 
-    public void playCard(PlayCard playCard) {
-        validatePlayCardAction(playCard);
-        playCards.put(playCard.getCardId(), playCard);
+    public void playCard(String guesserId, int cardId) {
+        Player guesser = getPlayer(guesserId);
+        validatePlayCardAction(guesser);
+        playCards.put(cardId, new PlayCard(guesser, guesser.playCard(cardId)));
         if (playCards.size() == numberOfGuessers) {
             roundState = RoundState.STORY_GUESSING;
         }
     }
 
-    private void validatePlayCardAction(PlayCard playCard) {
+    private void validatePlayCardAction(Player player) {
         validateRoundState(RoundState.CARD_PLAYING, () -> "When the round state isn't card playing, guesser can't play the card.");
-        Player player = playCard.getPlayer();
         String playerName = player.getName();
         if (!guessers.contains(player)) {
             throw new InvalidGameOperationException(format("Player: %s is not a guesser.", playerName));
@@ -83,18 +83,18 @@ public class Round {
         }
     }
 
-    public void guessStory(Guess guess) {
-        validateGuessStoryAction(guess);
-        Player guesser = guess.getGuesser();
-        guesses.put(guesser.getId(), guess);
+    public void guessStory(String guesserId, int playCardId) {
+        Player guesser = getPlayer(guesserId);
+        validateGuessStoryAction(guesser);
+        PlayCard playCard = getPlayCard(playCardId);
+        guesses.put(guesserId, new Guess(guesser, playCard));
         if (guesses.size() == numberOfGuessers) {
             roundState = RoundState.SCORING;
         }
     }
 
-    private void validateGuessStoryAction(Guess guess) {
+    private void validateGuessStoryAction(Player guesser) {
         validateRoundState(RoundState.STORY_GUESSING, () -> "When the round state isn't story guessing, guesser can't guess the story.");
-        Player guesser = guess.getGuesser();
         String guesserName = guesser.getName();
         if (!guessers.contains(guesser)) {
             throw new InvalidGameOperationException(format("Player: %s is not a guesser.", guesserName));
@@ -144,6 +144,15 @@ public class Round {
 
     public Optional<Story> mayHaveStory() {
         return ofNullable(story);
+    }
+
+    public Player getPlayer(String playerId) {
+        if (storyteller.getId().equals(playerId)) {
+            return storyteller;
+        } else {
+            return findFirst(guessers, guesser -> guesser.getId().equals(playerId))
+                    .orElseThrow(() -> new NotFoundException(format("Player: %s not found", playerId)));
+        }
     }
 
     public PlayCard getPlayCard(int cardId) {

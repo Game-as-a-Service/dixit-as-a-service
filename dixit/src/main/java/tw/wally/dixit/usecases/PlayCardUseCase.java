@@ -6,8 +6,9 @@ import lombok.NoArgsConstructor;
 import tw.wally.dixit.events.EventBus;
 import tw.wally.dixit.events.roundstate.DixitRoundCardPlayedEvent;
 import tw.wally.dixit.events.roundstate.DixitRoundStoryGuessedEvent;
-import tw.wally.dixit.exceptions.InvalidGameOperationException;
-import tw.wally.dixit.model.*;
+import tw.wally.dixit.model.Dixit;
+import tw.wally.dixit.model.RoundState;
+import tw.wally.dixit.model.Story;
 import tw.wally.dixit.repositories.DixitRepository;
 
 import javax.inject.Named;
@@ -28,22 +29,11 @@ public class PlayCardUseCase extends AbstractDixitUseCase {
         Dixit dixit = findDixit(request.gameId);
         validateRound(dixit, request.round);
 
-        playCard(request, dixit);
+        dixit.playCard(request.playerId, request.cardId);
 
         publishDixitRoundCardPlayedEvents(dixit);
         mayPublishDixitRoundStoryGuessedEvents(dixit);
         dixitRepository.save(dixit);
-    }
-
-    private void playCard(Request request, Dixit dixit) {
-        Player guesser = dixit.getPlayer(request.playerId);
-        Card card = guesser.playCard(request.cardId);
-        try {
-            dixit.playCard(guesser, card);
-        } catch (InvalidGameOperationException e) {
-            guesser.addHandCard(card);
-            throw e;
-        }
     }
 
     private void publishDixitRoundCardPlayedEvents(Dixit dixit) {

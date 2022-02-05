@@ -5,10 +5,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import tw.wally.dixit.events.EventBus;
 import tw.wally.dixit.events.gamestate.DixitGameOverEvent;
-import tw.wally.dixit.events.roundstate.DixitRoundStoryGuessedEvent;
 import tw.wally.dixit.events.roundstate.DixitRoundScoredEvent;
+import tw.wally.dixit.events.roundstate.DixitRoundStoryGuessedEvent;
 import tw.wally.dixit.events.roundstate.DixitRoundStoryToldEvent;
-import tw.wally.dixit.model.*;
+import tw.wally.dixit.model.Dixit;
+import tw.wally.dixit.model.GameState;
+import tw.wally.dixit.model.RoundState;
+import tw.wally.dixit.model.Story;
 import tw.wally.dixit.repositories.DixitRepository;
 
 import javax.inject.Named;
@@ -29,17 +32,11 @@ public class GuessStoryUseCase extends AbstractDixitUseCase {
         Dixit dixit = findDixit(request.gameId);
         validateRound(dixit, request.round);
 
-        guessStory(request, dixit);
+        dixit.guessStory(request.playerId, request.cardId);
 
         publishDixitRoundStoryGuessedEvents(dixit);
         mayPublishDixitRoundScoredEvents(dixit);
         dixitRepository.save(dixit);
-    }
-
-    private void guessStory(Request request, Dixit dixit) {
-        Player guesser = dixit.getPlayer(request.playerId);
-        PlayCard playCard = dixit.getPlayCard(request.cardId);
-        dixit.guessStory(guesser, playCard);
     }
 
     private void publishDixitRoundStoryGuessedEvents(Dixit dixit) {

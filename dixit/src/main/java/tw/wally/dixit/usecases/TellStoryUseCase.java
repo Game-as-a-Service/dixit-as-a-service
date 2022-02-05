@@ -5,8 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import tw.wally.dixit.events.EventBus;
 import tw.wally.dixit.events.roundstate.DixitRoundCardPlayedEvent;
-import tw.wally.dixit.exceptions.InvalidGameOperationException;
-import tw.wally.dixit.model.*;
+import tw.wally.dixit.model.Dixit;
+import tw.wally.dixit.model.RoundState;
+import tw.wally.dixit.model.Story;
 import tw.wally.dixit.repositories.DixitRepository;
 
 import javax.inject.Named;
@@ -27,21 +28,10 @@ public class TellStoryUseCase extends AbstractDixitUseCase {
         Dixit dixit = findDixit(request.gameId);
         validateRound(dixit, request.round);
 
-        tellStory(request, dixit);
+        dixit.tellStory(request.phrase, request.playerId , request.cardId);
 
         publishDixitRoundCardPlayedEvents(dixit);
         dixitRepository.save(dixit);
-    }
-
-    private void tellStory(Request request, Dixit dixit) {
-        Player storyteller = dixit.getPlayer(request.playerId);
-        Card card = storyteller.playCard(request.cardId);
-        try {
-            dixit.tellStory(request.phrase, storyteller, card);
-        } catch (InvalidGameOperationException e) {
-            storyteller.addHandCard(card);
-            throw e;
-        }
     }
 
     private void publishDixitRoundCardPlayedEvents(Dixit dixit) {
