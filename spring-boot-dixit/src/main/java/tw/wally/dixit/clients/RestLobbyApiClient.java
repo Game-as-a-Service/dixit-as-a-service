@@ -1,6 +1,7 @@
 package tw.wally.dixit.clients;
 
 import lombok.AllArgsConstructor;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import tw.wally.dixit.Registration;
 
@@ -13,7 +14,7 @@ public class RestLobbyApiClient implements LobbyServiceDriver {
     private final RestTemplate restTemplate;
 
     @Override
-    public void registerService(Registration registration) {
+    public void registerService(Registration registration) throws RestClientException {
         restTemplate.postForEntity(String.format("%s/games", API_PREFIX), registration, Object.class);
     }
 }
