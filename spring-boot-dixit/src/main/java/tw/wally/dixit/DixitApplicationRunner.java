@@ -1,5 +1,6 @@
 package tw.wally.dixit;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -15,6 +16,7 @@ import static tw.wally.dixit.model.Dixit.MIN_NUMBER_OF_PLAYERS;
 /**
  * @author - wally55077@gmail.com
  */
+@Slf4j
 @Component
 public class DixitApplicationRunner implements ApplicationRunner {
     private final String name;
@@ -38,9 +40,11 @@ public class DixitApplicationRunner implements ApplicationRunner {
     }
 
     private Void registerService(RetryContext retryContext) throws RestClientException {
+        log.info("Dixit is registering itself to the Lobby. (Retry={})", retryContext.getRetryCount());
         Registration registration = new Registration(name, serviceHost, MIN_NUMBER_OF_PLAYERS, MAX_NUMBER_OF_PLAYERS);
         registration.addOption(new Registration.Option("winningScore", "range", 25, 35, 5));
         lobbyServiceDriver.registerService(registration);
+        log.info("Dixit registered itself to the Lobby successfully.");
         return null;
     }
 }
