@@ -1,6 +1,7 @@
 package tw.wally.dixit;
 
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Collection;
@@ -9,6 +10,7 @@ import java.util.LinkedList;
 /**
  * @author - wally55077@gmail.com
  */
+@Data
 public class Registration {
     private String name;
     private String serviceHost;
