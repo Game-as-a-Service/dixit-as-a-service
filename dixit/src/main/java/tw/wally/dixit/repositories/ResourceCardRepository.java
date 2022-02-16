@@ -31,23 +31,22 @@ import static tw.wally.dixit.utils.StreamUtils.generate;
 public class ResourceCardRepository implements CardRepository {
 
     private static final String IMAGES_FOLDER_PATH = "images";
-    private static final String JAR = "jar";
     private final List<Card> cards;
 
     public ResourceCardRepository() {
-        var images = new ArrayList<>(findImages(IMAGES_FOLDER_PATH));
+        var images = new ArrayList<>(getImages());
         this.cards = generate(images.size(), number -> new Card(number + 1, images.get(number)));
     }
 
-    private Collection<String> findImages(String path) {
+    private Collection<String> getImages() {
         try {
-            var resource = getClass().getClassLoader().getResource(path);
+            var resource = getClass().getClassLoader().getResource(IMAGES_FOLDER_PATH);
             if (resource == null) {
-                throw new NotFoundException(format("Resource not found from path %s", path));
+                throw new NotFoundException(format("Resource not found from path %s", IMAGES_FOLDER_PATH));
             }
             Collection<String> images;
-            if (JAR.equals(resource.getProtocol())) {
-                images = findImagesFromJar(path);
+            if ("jar".equals(resource.getProtocol())) {
+                images = getImagesFromJar();
             } else {
                 images = walk(get(resource.toURI()))
                         .filter(Files::isRegularFile)
@@ -56,7 +55,7 @@ public class ResourceCardRepository implements CardRepository {
                         .collect(toSet());
             }
             if (images.isEmpty()) {
-                throw new NotFoundException(format("Resource not found from path %s", path));
+                throw new NotFoundException(format("Resource not found from path %s", IMAGES_FOLDER_PATH));
             }
             return images;
         } catch (IOException | URISyntaxException e) {
@@ -64,7 +63,7 @@ public class ResourceCardRepository implements CardRepository {
         }
     }
 
-    private Collection<String> findImagesFromJar(String folder) {
+    private Collection<String> getImagesFromJar() {
         var src = getClass().getProtectionDomain().getCodeSource();
         if (src != null) {
             URL jar = src.getLocation();
@@ -73,7 +72,7 @@ public class ResourceCardRepository implements CardRepository {
                 var images = new HashSet<String>();
                 while ((e = zip.getNextEntry()) != null) {
                     String name = e.getName();
-                    if (name.startsWith(folder) && !e.isDirectory()) {
+                    if (name.startsWith(IMAGES_FOLDER_PATH) && !e.isDirectory()) {
                         images.add(toImage(name));
                     }
                 }
@@ -82,7 +81,7 @@ public class ResourceCardRepository implements CardRepository {
                 throw new NotFoundException(e);
             }
         } else {
-            throw new NotFoundException(format("folder %s does not have any files", folder));
+            throw new NotFoundException(format("folder %s does not have any files", IMAGES_FOLDER_PATH));
         }
     }
 
