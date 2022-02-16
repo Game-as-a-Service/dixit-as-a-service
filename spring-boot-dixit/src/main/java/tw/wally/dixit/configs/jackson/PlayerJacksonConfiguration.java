@@ -31,7 +31,7 @@ public class PlayerJacksonConfiguration {
         protected Player deserializeObject(JsonParser jsonParser, DeserializationContext context, ObjectCodec codec, JsonNode tree) throws IOException {
             String id = tree.get("id").asText();
             String name = tree.get("name").asText();
-            Color color = codec.treeToValue(tree.get("color"), Color.class);
+            Color color = tree.get("color") == null ? null : codec.treeToValue(tree.get("color"), Color.class);
             var handCards = asList(color == null ? new Card[0] : codec.treeToValue(tree.get("handCards"), Card[].class));
             int score = color == null ? 0 : tree.get("score").asInt();
             return new Player(id, name, color, handCards, score);
