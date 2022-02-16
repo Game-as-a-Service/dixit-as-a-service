@@ -2,16 +2,7 @@ package tw.wally.dixit;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import tw.wally.dixit.clients.LobbyServiceDriver;
 import tw.wally.dixit.model.*;
-import tw.wally.dixit.repositories.CardRepository;
-import tw.wally.dixit.services.TokenService;
-import tw.wally.dixit.utils.FakeCardRepository;
-import tw.wally.dixit.utils.FakeLobbyServiceDriver;
-import tw.wally.dixit.utils.FakeTokenService;
 import tw.wally.dixit.views.*;
 
 import static java.util.function.Function.identity;
@@ -22,29 +13,7 @@ import static tw.wally.dixit.model.Dixit.NUMBER_OF_PLAYER_HAND_CARDS;
 import static tw.wally.dixit.utils.StreamUtils.*;
 
 public class DixitControllerTest extends AbstractDixitSpringBootTest {
-
-    @Configuration
-    public static class DixitConfiguration {
-
-        @Bean
-        @Primary
-        public LobbyServiceDriver testLobbyServiceDriver() {
-            return new FakeLobbyServiceDriver();
-        }
-
-        @Bean
-        @Primary
-        public TokenService testTokenService() {
-            return new FakeTokenService();
-        }
-
-        @Bean
-        @Primary
-        public CardRepository testCardRepository() {
-            return new FakeCardRepository();
-        }
-    }
-
+    
     @Test
     public void WhenCreateDixitWithFourPlayers_ThenShouldSuccess() throws Exception {
         createDixitWithPlayers(4)

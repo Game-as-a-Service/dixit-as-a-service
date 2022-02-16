@@ -1,14 +1,19 @@
 package tw.wally.dixit;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.ResultActions;
+import tw.wally.dixit.clients.LobbyServiceDriver;
 import tw.wally.dixit.model.Card;
 import tw.wally.dixit.model.Dixit;
 import tw.wally.dixit.model.Player;
 import tw.wally.dixit.model.Story;
+import tw.wally.dixit.repositories.CardRepository;
 import tw.wally.dixit.repositories.DixitRepository;
+import tw.wally.dixit.services.TokenService;
 import tw.wally.dixit.usecases.CreateDixitUseCase;
 import tw.wally.dixit.usecases.GuessStoryUseCase;
 import tw.wally.dixit.usecases.PlayCardUseCase;
@@ -17,6 +22,7 @@ import tw.wally.dixit.usecases.TellStoryUseCase;
 import java.util.Collection;
 
 import static java.util.Collections.singletonList;
+import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -27,7 +33,7 @@ import static tw.wally.dixit.utils.StreamUtils.*;
 /**
  * @author - wally55077@gmail.com
  */
-@ContextConfiguration(classes = {DixitApplication.class, DixitControllerTest.DixitConfiguration.class})
+@ContextConfiguration(classes = {DixitApplication.class})
 public class AbstractDixitSpringBootTest extends AbstractSpringBootTest {
     protected static final String API_PREFIX = "/api/dixit";
     protected static final String ROOM_ID = "roomId";
@@ -38,11 +44,28 @@ public class AbstractDixitSpringBootTest extends AbstractSpringBootTest {
     protected static final int NUMBER_OF_PLAYERS = 4;
     protected static final int DEFAULT_WINNING_SCORE = 30;
 
+    @MockBean
+    protected LobbyServiceDriver lobbyServiceDriver;
+
+    @MockBean
+    protected TokenService tokenService;
+
+    @MockBean
+    protected CardRepository cardRepository;
+
     @Autowired
     protected DixitRepository dixitRepository;
 
+    @BeforeAll
+    public static void setup() {
+        System.setProperty("dixit.jwt.secret", "SpringBootDixitJwtSecretKeyForTest");
+        System.setProperty("dixit.mongodb.uri", "mongodb://root:root@localhost:27017/dixit");
+    }
+
     @BeforeEach
     public void cleanUp() {
+        when(cardRepository.findAll())
+                .thenReturn(generate(36, number -> new Card(number, "image: " + number)));
         dixitRepository.deleteAll();
     }
 
