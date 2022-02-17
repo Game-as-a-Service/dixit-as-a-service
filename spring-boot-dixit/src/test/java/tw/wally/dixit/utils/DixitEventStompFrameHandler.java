@@ -31,8 +31,8 @@ public class DixitEventStompFrameHandler<T> implements StompFrameHandler {
     @SuppressWarnings("unchecked")
     @Override
     public void handleFrame(StompHeaders stompHeaders, Object o) {
+        this.blockingQueue.clear();
         if (o != null && o.getClass() == tClass) {
-            this.blockingQueue.clear();
             this.blockingQueue.add((T) o);
         }
     }
