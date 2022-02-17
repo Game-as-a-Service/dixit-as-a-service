@@ -2,13 +2,14 @@ package tw.wally.dixit.repositories.entities;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import tw.wally.dixit.model.Card;
 import tw.wally.dixit.model.Color;
 import tw.wally.dixit.model.Player;
 
 import java.util.Collection;
+import java.util.Map;
 
 import static tw.wally.dixit.utils.StreamUtils.mapToList;
-import static tw.wally.dixit.utils.StreamUtils.toMap;
 
 /**
  * @author - wally55077@gmail.com
@@ -19,16 +20,16 @@ public class PlayerData {
     private final String id;
     private final String name;
     private Color color;
-    private final Collection<CardData> handCards;
+    private final Collection<Integer> handCardIds;
     private int score;
 
     public static PlayerData toData(Player player) {
-        var handCards = mapToList(player.getHandCards(), CardData::toData);
-        return new PlayerData(player.getId(), player.getName(), player.getColor(), handCards, player.getScore());
+        var handCardIds = mapToList(player.getHandCards(), Card::getId);
+        return new PlayerData(player.getId(), player.getName(), player.getColor(), handCardIds, player.getScore());
     }
 
-    public Player toEntity() {
-        var handCards = toMap(this.handCards, CardData::getId, CardData::toEntity);
+    public Player toEntity(Map<Integer, Card> cards) {
+        var handCards = mapToList(handCardIds, cards::get);
         return new Player(id, name, color, handCards, score);
     }
 

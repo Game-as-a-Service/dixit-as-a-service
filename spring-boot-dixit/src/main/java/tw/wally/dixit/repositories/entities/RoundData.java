@@ -3,6 +3,7 @@ package tw.wally.dixit.repositories.entities;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import tw.wally.dixit.model.Card;
 import tw.wally.dixit.model.Player;
 import tw.wally.dixit.model.Round;
 import tw.wally.dixit.model.RoundState;
@@ -40,16 +41,16 @@ public class RoundData {
                 .build();
     }
 
-    public Round toEntity(Map<String, Player> players) {
+    public Round toEntity(Map<String, Player> players, Map<Integer, Card> cards) {
         Player storyteller = players.get(storytellerId);
         return Round.builder()
                 .roundState(roundState)
                 .numberOfGuessers(guesserIds.size())
                 .storyteller(storyteller)
                 .guessers(mapToList(guesserIds, players::get))
-                .story(mayHaveStory().map(story -> story.toEntity(storyteller)).orElse(null))
-                .playCards(toMap(playCards, PlayCardData::getCardId, playCard -> playCard.toEntity(players.get(playCard.getPlayerId()))))
-                .guesses(toMap(guesses, GuessData::getGuesserId, guess -> guess.toEntity(players.get(guess.getGuesserId()), players.get(guess.getPlaycardPlayerId()))))
+                .story(mayHaveStory().map(story -> story.toEntity(players, cards)).orElse(null))
+                .playCards(toMap(playCards, PlayCardData::getCardId, playCard -> playCard.toEntity(players, cards)))
+                .guesses(toMap(guesses, GuessData::getGuesserId, guess -> guess.toEntity(players, cards)))
                 .build();
     }
 

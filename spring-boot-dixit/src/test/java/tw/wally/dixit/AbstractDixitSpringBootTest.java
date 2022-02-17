@@ -19,9 +19,13 @@ import tw.wally.dixit.usecases.GuessStoryUseCase;
 import tw.wally.dixit.usecases.PlayCardUseCase;
 import tw.wally.dixit.usecases.TellStoryUseCase;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import static java.util.Collections.singletonList;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.IntStream.range;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -64,8 +68,13 @@ public class AbstractDixitSpringBootTest extends AbstractSpringBootTest {
 
     @BeforeEach
     public void cleanUp() {
+        var cards = range(0, 36)
+                .mapToObj(number -> new Card(number, "image: " + number))
+                .collect(toMap(Card::getId, identity()));
         when(cardRepository.findAll())
-                .thenReturn(generate(36, number -> new Card(number, "image: " + number)));
+                .thenReturn(new ArrayList<>(cards.values()));
+        when(cardRepository.findAllAsMap())
+                .thenReturn(cards);
         dixitRepository.deleteAll();
     }
 

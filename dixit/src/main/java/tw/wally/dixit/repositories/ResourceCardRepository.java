@@ -13,7 +13,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -22,8 +22,10 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.walk;
 import static java.nio.file.Paths.get;
 import static java.util.Base64.getEncoder;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
-import static tw.wally.dixit.utils.StreamUtils.generate;
+import static java.util.stream.IntStream.range;
 
 /**
  * @author - wally55077@gmail.com
@@ -31,11 +33,13 @@ import static tw.wally.dixit.utils.StreamUtils.generate;
 public class ResourceCardRepository implements CardRepository {
 
     private static final String IMAGES_FOLDER_PATH = "images";
-    private final List<Card> cards;
+    private final Map<Integer, Card> cards;
 
     public ResourceCardRepository() {
         var images = new ArrayList<>(getImages());
-        this.cards = generate(images.size(), number -> new Card(number + 1, images.get(number)));
+        this.cards = range(0, images.size())
+                .mapToObj(number -> new Card(number + 1, images.get(number)))
+                .collect(toMap(Card::getId, identity()));
     }
 
     private Collection<String> getImages() {
@@ -108,7 +112,7 @@ public class ResourceCardRepository implements CardRepository {
     }
 
     @Override
-    public List<Card> findAll() {
+    public Map<Integer, Card> findAllAsMap() {
         return cards;
     }
 

@@ -16,6 +16,10 @@ public class PlayCard {
     private Player player;
     private Card card;
 
+    public String getPlayerId() {
+        return player.getId();
+    }
+
     public int getCardId() {
         return card.getId();
     }

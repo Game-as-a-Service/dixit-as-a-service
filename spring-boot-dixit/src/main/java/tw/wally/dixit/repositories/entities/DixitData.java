@@ -5,14 +5,12 @@ import lombok.Builder;
 import lombok.Getter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import tw.wally.dixit.model.Card;
 import tw.wally.dixit.model.Dixit;
 import tw.wally.dixit.model.GameState;
 import tw.wally.dixit.model.Player;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import static tw.wally.dixit.repositories.MongoDixitDAO.DIXIT;
 import static tw.wally.dixit.utils.StreamUtils.mapToList;
@@ -29,19 +27,19 @@ public class DixitData {
 
     @Id
     private final String id;
-    private GameState gameState;
     private final VictoryConditionData victoryCondition;
-    private final Collection<CardData> deck;
+    private final Collection<Integer> deckCardId;
     private final List<PlayerData> players;
-    private int numberOfRounds;
     private final RoundData round;
+    private GameState gameState;
+    private int numberOfRounds;
     private Collection<String> winnerIds;
 
     public static DixitData toData(Dixit dixit) {
         return DixitData.builder()
                 .id(dixit.getId())
                 .victoryCondition(VictoryConditionData.toData(dixit.getVictoryCondition()))
-                .deck(mapToList(dixit.getDeck(), CardData::toData))
+                .deckCardId(mapToList(dixit.getDeck(), Card::getId))
                 .players(mapToList(dixit.getPlayers(), PlayerData::toData))
                 .gameState(dixit.getGameState())
                 .numberOfRounds(dixit.getNumberOfRounds())
@@ -50,16 +48,16 @@ public class DixitData {
                 .build();
     }
 
-    public Dixit toEntity() {
-        var players = toMap(this.players, PlayerData::getId, PlayerData::toEntity);
+    public Dixit toEntity(Map<Integer, Card> cards) {
+        var players = toMap(this.players, PlayerData::getId, player -> player.toEntity(cards));
         return Dixit.builder()
                 .id(id)
                 .gameState(gameState)
                 .victoryCondition(victoryCondition.toEntity())
-                .deck(new LinkedList<>(mapToList(deck, CardData::toEntity)))
+                .deck(new LinkedList<>(mapToList(deckCardId, cards::get)))
                 .players(new ArrayList<>(players.values()))
                 .numberOfRounds(numberOfRounds)
-                .round(round.toEntity(players))
+                .round(round.toEntity(players, cards))
                 .winners(mapToList(winnerIds, players::get))
                 .build();
     }

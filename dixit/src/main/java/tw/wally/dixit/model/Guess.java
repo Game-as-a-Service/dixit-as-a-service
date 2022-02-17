@@ -27,6 +27,10 @@ public class Guess {
         }
     }
 
+    public String getGuesserId() {
+        return guesser.getId();
+    }
+
     public Player getPlayCardPlayer() {
         return playCard.getPlayer();
     }

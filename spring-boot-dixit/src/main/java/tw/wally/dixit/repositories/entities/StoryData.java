@@ -2,8 +2,11 @@ package tw.wally.dixit.repositories.entities;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import tw.wally.dixit.model.Card;
 import tw.wally.dixit.model.Player;
 import tw.wally.dixit.model.Story;
+
+import java.util.Map;
 
 /**
  * @author - wally55077@gmail.com
@@ -18,7 +21,7 @@ public class StoryData {
         return new StoryData(story.getPhrase(), PlayCardData.toData(story.getPlayCard()));
     }
 
-    public Story toEntity(Player storyteller) {
-        return new Story(phrase, playCard.toEntity(storyteller));
+    public Story toEntity(Map<String, Player> players, Map<Integer, Card> cards) {
+        return new Story(phrase, playCard.toEntity(players, cards));
     }
 }
