@@ -9,5 +9,5 @@ import tw.wally.dixit.repositories.entities.DixitData;
  */
 @Repository
 public interface MongoDixitDAO extends MongoRepository<DixitData, String> {
-    String DIXIT = "dixit";
+    String DIXIT = "Dixit";
 }

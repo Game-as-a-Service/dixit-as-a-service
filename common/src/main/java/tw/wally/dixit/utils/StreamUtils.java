@@ -40,7 +40,7 @@ public class StreamUtils {
     public static <T, K, U> Map<K, U> toMap(Collection<T> collection,
                                             Function<? super T, ? extends K> keyMapper,
                                             Function<T, U> valueMapper) {
-        return collection.stream().collect(Collectors.toMap(keyMapper, valueMapper));
+        return collection.stream().collect(Collectors.toMap(keyMapper, valueMapper, (existing, replacement) -> existing, LinkedHashMap::new));
     }
 
     public static <T> List<T> generate(int count, IntFunction<T> mapper) {
