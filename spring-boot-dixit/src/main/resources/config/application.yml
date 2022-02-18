@@ -8,7 +8,7 @@ jwt:
 
 dixit:
   service:
-    name: dixit
+    name: Dixit
     host: ${DIXIT_SERVICE_HOST:PLACEHOLDER}
   mongodb:
     uri: ${MONGO_URI:PLACEHOLDER}
