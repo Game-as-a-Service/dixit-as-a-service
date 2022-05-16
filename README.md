@@ -1,27 +1,27 @@
 You can use this readme template by Steven
 
-must have
-## How to install 
+## About this project 
+
+## How to install (must have)
 Please write how to use command line to install your project
 
 ```
 npm install 
 ```
 
-## How to run
+## How to run (must have)
 example
 ```
 npm run start
 ```
 
-## How to run test
+## How to run test (must have)
 example
 ```
 npm run test
 ```
 
 
-nice to have
-## About this project
-## How to contribute
-## About this project architech 
+
+## How to contribute (nice to have)
+## About this project architech (nice to have)
