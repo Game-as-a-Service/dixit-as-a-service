@@ -39,6 +39,6 @@ public class DixitEventStompFrameHandler<T> implements StompFrameHandler {
 
     @SneakyThrows
     public T getPayload() {
-        return this.blockingQueue.poll(10, SECONDS);
+        return this.blockingQueue.poll(1, SECONDS);
     }
 }
