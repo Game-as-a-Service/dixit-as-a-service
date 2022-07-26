@@ -6,6 +6,10 @@ spring:
 jwt:
   secret: ${dixit.jwt.secret}
 
+springfox:
+  documentation:
+
+
 dixit:
   service:
     name: dixit
